@@ -5,8 +5,13 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
+    "baseUrl": ".",
     "rootDir": "src",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }

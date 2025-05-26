@@ -1,4 +1,4 @@
-import build from "./app";
+import build from "@/app";
 
 const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 8080;
 

@@ -15,4 +15,15 @@ describe('App http injection tests', () => {
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
     expect(response.json()).toStrictEqual({ hello: 'world!' });
   });
+
+  test('Received an adventure id when POSTing /adventures', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/adventures',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    expect(response.json()).toHaveProperty('adventure');
+  });
 });

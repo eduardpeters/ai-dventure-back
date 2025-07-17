@@ -5,7 +5,7 @@ describe('App http injection tests', () => {
   const app = build({
     logger: false,
     adventureHourlyRate: 1,
-    connectionString: import.meta.env.DATABASE_URL,
+    connectionString: import.meta.env.TEST_DATABASE_URL,
   });
   afterAll(() => app.close());
 

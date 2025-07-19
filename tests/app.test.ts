@@ -36,7 +36,7 @@ describe('App http injection tests', () => {
 
   test('Received a 503 response when reaching the limit of POSTing /adventures', async () => {
     onTestFinished(async () => {
-      await db.query('TRUNCATE TABLE adventures');
+      await db.cleanupTables(['adventures']);
     });
     const response = await app.inject({
       method: 'POST',

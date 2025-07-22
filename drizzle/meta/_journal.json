@@ -15,6 +15,13 @@
       "when": 1753213487056,
       "tag": "0001_classy_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753213817337,
+      "tag": "0002_seed-adventure-types",
+      "breakpoints": true
     }
   ]
 }

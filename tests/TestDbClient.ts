@@ -15,6 +15,11 @@ export default class TestDbClient {
     return this.#db.query(text, params);
   }
 
+  async queryAdventureTypes() {
+    const result = await this.query('SELECT id, description FROM adventure_types;');
+    return result.rows;
+  }
+
   async cleanupTables(tables: TableNames[]) {
     /* 
         Only allow valid table names for execution as we cannot use

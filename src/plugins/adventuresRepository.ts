@@ -17,8 +17,9 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
   const { db } = fastify;
 
   return {
-    async create() {
+    async create(adventureTypeId: string) {
       const newAdventure: typeof adventuresTable.$inferInsert = {
+        adventure_type_id: adventureTypeId,
         created: new Date(),
         active: true,
       };

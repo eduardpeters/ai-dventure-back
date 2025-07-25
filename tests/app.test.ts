@@ -62,21 +62,29 @@ describe('Adventures Injection Tests', () => {
     db.close();
   });
 
-  test('request the "/" route', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/',
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
-    expect(response.json()).toStrictEqual({ hello: 'world!' });
-  });
-
-  test('Received an adventure id when POSTing /adventures', async () => {
+  test('It receives a 400 status if requesting without a valid adventure type', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/adventures',
+      payload: {
+        adventureTypeId: '00000000-0000-0000-0000-000000000000',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  test('Received an adventure id when POSTing /adventures', async () => {
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const requestedAdventureType = adventureTypes[0];
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/adventures',
+      payload: {
+        adventureTypeId: requestedAdventureType.id,
+      },
     });
 
     expect(response.statusCode).toBe(200);
@@ -88,9 +96,16 @@ describe('Adventures Injection Tests', () => {
     onTestFinished(async () => {
       await db.cleanupTables(['adventures']);
     });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const requestedAdventureType = adventureTypes[0];
+
     const response = await app.inject({
       method: 'POST',
       url: '/adventures',
+      payload: {
+        adventureTypeId: requestedAdventureType.id,
+      },
     });
 
     expect(response.statusCode).toBe(503);

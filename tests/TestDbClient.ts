@@ -11,8 +11,12 @@ export default class TestDbClient {
     this.#db = new Pool({ connectionString });
   }
 
-  query(text: string, params?: any[]) {
-    return this.#db.query(text, params);
+  async close() {
+    await this.#db.end();
+  }
+
+  async query(text: string, params?: any[]) {
+    return await this.#db.query(text, params);
   }
 
   async queryAdventureTypes() {

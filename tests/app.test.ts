@@ -8,9 +8,11 @@ describe('Aventure Types Injection Tests', () => {
     adventureHourlyRate: 1,
     connectionString: import.meta.env.TEST_DATABASE_URL,
   });
-  afterAll(() => app.close());
-
   const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  afterAll(() => {
+    app.close();
+    db.close();
+  });
 
   test('It receives a list of available adventure types', async () => {
     const response = await app.inject({
@@ -48,15 +50,17 @@ describe('Aventure Types Injection Tests', () => {
   });
 });
 
-describe.skip('App http injection tests', () => {
+describe('Adventures Injection Tests', () => {
   const app = build({
     logger: false,
     adventureHourlyRate: 1,
     connectionString: import.meta.env.TEST_DATABASE_URL,
   });
-  afterAll(() => app.close());
-
   const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  afterAll(() => {
+    app.close();
+    db.close();
+  });
 
   test('request the "/" route', async () => {
     const response = await app.inject({

@@ -1,14 +1,17 @@
 import { describe, expect, test, afterAll, onTestFinished } from 'vitest';
 import build from '../src/app';
 import TestDbClient from './TestDbClient';
+import './vitest'; // meta type definitions for test environment
+
+const TEST_DATABASE_URL = import.meta.env.TEST_DATABASE_URL;
 
 describe('Aventure Types Injection Tests', () => {
   const app = build({
     logger: false,
     adventureHourlyRate: 1,
-    connectionString: import.meta.env.TEST_DATABASE_URL,
+    connectionString: TEST_DATABASE_URL,
   });
-  const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();
     db.close();
@@ -54,9 +57,9 @@ describe('Adventures Injection Tests', () => {
   const app = build({
     logger: false,
     adventureHourlyRate: 1,
-    connectionString: import.meta.env.TEST_DATABASE_URL,
+    connectionString: TEST_DATABASE_URL,
   });
-  const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();
     db.close();
@@ -117,9 +120,9 @@ describe('Adventures Gameplay Injection Tests', () => {
   const app = build({
     logger: false,
     adventureHourlyRate: 1,
-    connectionString: import.meta.env.TEST_DATABASE_URL,
+    connectionString: TEST_DATABASE_URL,
   });
-  const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();
     db.close();

@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { gt } from 'drizzle-orm';
+import { eq, gt } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
 import { adventuresTable } from '@/db/schema';
+import { getMySqlColumnBuilders } from 'drizzle-orm/mysql-core/columns/all';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -13,11 +14,13 @@ interface AdventuresRepositoryOptions {
   adventureHourlyRate: number;
 }
 
+type Adventure = typeof adventuresTable.$inferSelect;
+
 const createRepository = (fastify: FastifyInstance, options: AdventuresRepositoryOptions) => {
   const { db } = fastify;
 
   return {
-    async create(adventureTypeId: string) {
+    async create(adventureTypeId: string): Promise<Adventure> {
       const newAdventure: typeof adventuresTable.$inferInsert = {
         adventure_type_id: adventureTypeId,
         created: new Date(),
@@ -37,6 +40,16 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
       const count = await db.$count(adventuresTable, gt(adventuresTable.created, oneHourLess));
 
       return count < options.adventureHourlyRate;
+    },
+
+    async getById(id: string): Promise<Adventure | null> {
+      const results = await db.select().from(adventuresTable).where(eq(adventuresTable.id, id));
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
     },
   };
 };

@@ -24,6 +24,15 @@ export default class TestDbClient {
     return result.rows;
   }
 
+  async createAdventure(adventureType: string, isActive: boolean) {
+    const text =
+      'INSERT INTO adventures (adventure_type_id, active, created) VALUES ($1, $2, $3) RETURNING *';
+    const values = [adventureType, isActive, new Date()];
+    const result = await this.query(text, values);
+
+    return result.rows[0];
+  }
+
   async cleanupTables(tables: TableNames[]) {
     /* 
         Only allow valid table names for execution as we cannot use

@@ -74,7 +74,7 @@ describe('Adventures Injection Tests', () => {
     expect(response.statusCode).toBe(400);
   });
 
-  test('Received an adventure id when POSTing /adventures', async () => {
+  test('It receives an adventure id when POSTing /adventures', async () => {
     // We retrieve directly from DB
     const adventureTypes = await db.queryAdventureTypes();
     const requestedAdventureType = adventureTypes[0];
@@ -92,7 +92,7 @@ describe('Adventures Injection Tests', () => {
     expect(response.json()).toHaveProperty('adventure');
   });
 
-  test('Received a 503 response when reaching the limit of POSTing /adventures', async () => {
+  test('It receives a 503 response when reaching the limit of POSTing /adventures', async () => {
     onTestFinished(async () => {
       await db.cleanupTables(['adventures']);
     });
@@ -110,5 +110,72 @@ describe('Adventures Injection Tests', () => {
 
     expect(response.statusCode).toBe(503);
     expect(response.headers['retry-after']).toBeDefined();
+  });
+});
+
+describe('Adventures Gameplay Injection Tests', () => {
+  const app = build({
+    logger: false,
+    adventureHourlyRate: 1,
+    connectionString: import.meta.env.TEST_DATABASE_URL,
+  });
+  const db = new TestDbClient(import.meta.env.TEST_DATABASE_URL);
+  afterAll(() => {
+    app.close();
+    db.close();
+  });
+
+  test('It receives a 400 if adventure id is not valid', async () => {
+    // DB is empty
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/00000000-0000-0000-0000-000000000000/forth`,
+      payload: {},
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toBe('Invalid Adventure Type');
+  });
+
+  test('It receives a 400 if adventure is no longer active', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, false);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {},
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  test('It receives the first chapter if adventure is brand new', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {},
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('narrative');
+    expect(data).toHaveProperty('choices');
   });
 });

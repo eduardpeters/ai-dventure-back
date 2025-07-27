@@ -115,7 +115,11 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Otherwise, carry on with the story
 
-      return { chapterNumber: 2, narrative: 'a new chapter goes here!', choices: [] };
+      return {
+        chapterNumber: latestChapter.number + 1,
+        narrative: 'a new chapter goes here!',
+        choices: [],
+      };
     },
   );
 };

@@ -33,6 +33,15 @@ export default class TestDbClient {
     return result.rows[0];
   }
 
+  async createChapter(adventureId: string, chapterNumber: number, storySoFar: string) {
+    const text =
+      'INSERT INTO chapters (adventure_id, number, story_so_far, created) VALUES ($1, $2, $3, $4) RETURNING *';
+    const values = [adventureId, chapterNumber, storySoFar, new Date()];
+    const result = await this.query(text, values);
+
+    return result.rows[0];
+  }
+
   async cleanupTables(tables: TableNames[]) {
     /* 
         Only allow valid table names for execution as we cannot use

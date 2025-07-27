@@ -184,4 +184,31 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.chapterNumber).toBe(1);
     expect(data.narrative).toBe('the initial chapter goes here!');
   });
+
+  test('It receives the next chapter if adventure has begun', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(adventure.id, 1, 'an epic adventure has ensued');
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {},
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('chapterNumber');
+    expect(data).toHaveProperty('narrative');
+    expect(data).toHaveProperty('choices');
+    expect(data.chapterNumber).toBe(2);
+    expect(data.narrative).toBe('a new chapter goes here!');
+  });
 });

@@ -110,13 +110,27 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       console.log(latestChapter);
       // If no previous chapters, begin the first
       if (!latestChapter) {
-        return { chapterNumber: 1, narrative: 'the initial chapter goes here!', choices: [] };
+        const nextChapter = await chaptersRepository.create({
+          adventureId: adventure.id,
+          number: 1,
+          storySoFar: 'a choice has presented itself',
+        });
+        return {
+          chapterNumber: nextChapter.number,
+          narrative: 'the initial chapter goes here!',
+          choices: [],
+        };
       }
 
       // Otherwise, carry on with the story
+      const nextChapter = await chaptersRepository.create({
+        adventureId: adventure.id,
+        number: latestChapter.number + 1,
+        storySoFar: 'another choice has presented itself',
+      });
 
       return {
-        chapterNumber: latestChapter.number + 1,
+        chapterNumber: nextChapter.number,
         narrative: 'a new chapter goes here!',
         choices: [],
       };

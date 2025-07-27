@@ -161,7 +161,7 @@ describe('Adventures Gameplay Injection Tests', () => {
 
   test('It receives the first chapter if adventure is brand new', async () => {
     onTestFinished(async () => {
-      await db.cleanupTables(['adventures']);
+      await db.cleanupTables(['chapters', 'adventures']);
     });
     // We retrieve directly from DB
     const adventureTypes = await db.queryAdventureTypes();

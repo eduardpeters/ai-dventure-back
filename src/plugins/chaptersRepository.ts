@@ -11,6 +11,12 @@ declare module 'fastify' {
 
 type Chapter = typeof chaptersTable.$inferSelect;
 
+interface ChapterCreate {
+  adventureId: string;
+  number: number;
+  storySoFar: string;
+}
+
 const createRepository = (fastify: FastifyInstance) => {
   const { db } = fastify;
 
@@ -28,6 +34,19 @@ const createRepository = (fastify: FastifyInstance) => {
       }
 
       return results[0];
+    },
+
+    async create(newChapterData: ChapterCreate): Promise<Chapter> {
+      const newChapter: typeof chaptersTable.$inferInsert = {
+        adventure_id: newChapterData.adventureId,
+        number: newChapterData.number,
+        story_so_far: newChapterData.storySoFar,
+        created: new Date(),
+      };
+
+      const result = await db.insert(chaptersTable).values(newChapter).returning();
+
+      return result[0];
     },
   };
 };

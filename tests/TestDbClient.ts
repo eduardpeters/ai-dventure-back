@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 
-const TABLE_NAMES = ['adventures'] as const;
+const TABLE_NAMES = ['adventures', 'chapters', 'chapter_choices'] as const;
 
 type TableNames = (typeof TABLE_NAMES)[number];
 
@@ -43,7 +43,7 @@ export default class TestDbClient {
     }
 
     for (const table of tables) {
-      await this.query(`TRUNCATE TABLE ${table}`);
+      await this.query(`DELETE FROM ${table}`);
     }
   }
 }

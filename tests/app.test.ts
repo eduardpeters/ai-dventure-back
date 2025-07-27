@@ -1,7 +1,7 @@
 import { describe, expect, test, afterAll, onTestFinished } from 'vitest';
 import build from '../src/app';
 import TestDbClient from './TestDbClient';
-import './vitest'; // meta type definitions for test environment
+import * as vitestTypes from './vitest'; // meta type definitions for test environment
 
 const TEST_DATABASE_URL = import.meta.env.TEST_DATABASE_URL;
 
@@ -178,7 +178,10 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
     const data = response.json();
+    expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
     expect(data).toHaveProperty('choices');
+    expect(data.chapterNumber).toBe(1);
+    expect(data.narrative).toBe('the initial chapter goes here!');
   });
 });

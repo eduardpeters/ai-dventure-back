@@ -2,6 +2,7 @@ import fastify, { FastifyInstance, FastifyHttpOptions } from 'fastify';
 import dbPlugin from '@/plugins/db';
 import adventuresRepository from '@/plugins/adventuresRepository';
 import adventureTypesRepository from '@/plugins/adventureTypesRepository';
+import chaptersRepository from '@/plugins/chaptersRepository';
 import adventureRoutes from '@/routes/adventures';
 import adventureTypesRoutes from '@/routes/adventureTypes';
 
@@ -17,6 +18,7 @@ function build(options: AppOptions): FastifyInstance {
   app.register(dbPlugin, { connectionString: options.connectionString });
   app.register(adventuresRepository, { adventureHourlyRate: options.adventureHourlyRate });
   app.register(adventureTypesRepository);
+  app.register(chaptersRepository);
 
   app.get('/', async (request, reply) => {
     return { hello: 'world!' };

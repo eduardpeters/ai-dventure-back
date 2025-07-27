@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
 const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-  const { adventuresRepository, adventureTypesRepository } = fastify;
+  const { adventuresRepository, adventureTypesRepository, chaptersRepository } = fastify;
 
   fastify.post(
     '/adventures',
@@ -71,6 +71,7 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           200: {
             type: 'object',
             properties: {
+              chapterNumber: { type: 'number' },
               narrative: { type: 'string' },
               choices: {
                 type: 'array',
@@ -104,12 +105,17 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       }
 
       // Check for latest chapter in the story
+      const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
 
+      console.log(latestChapter);
       // If no previous chapters, begin the first
+      if (!latestChapter) {
+        return { chapterNumber: 1, narrative: 'the initial chapter goes here!', choices: [] };
+      }
 
       // Otherwise, carry on with the story
 
-      return { narrative: 'a chapter goes here!', choices: [] };
+      return { chapterNumber: 2, narrative: 'a new chapter goes here!', choices: [] };
     },
   );
 };

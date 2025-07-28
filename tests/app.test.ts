@@ -161,7 +161,7 @@ describe('Adventures Gameplay Injection Tests', () => {
 
   test('It receives the first chapter if adventure is brand new', async () => {
     onTestFinished(async () => {
-      await db.cleanupTables(['chapters', 'adventures']);
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
     });
     // We retrieve directly from DB
     const adventureTypes = await db.queryAdventureTypes();
@@ -183,11 +183,14 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data).toHaveProperty('choices');
     expect(data.chapterNumber).toBe(1);
     expect(data.narrative).toBe('the initial chapter goes here!');
+    expect(data.choices.length).toBe(3);
+    expect(data.choices.every((c) => c.id)).toBe(true);
+    expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
   });
 
   test('It receives the next chapter if adventure has begun', async () => {
     onTestFinished(async () => {
-      await db.cleanupTables(['chapters', 'adventures']);
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
     });
     // We retrieve directly from DB
     const adventureTypes = await db.queryAdventureTypes();
@@ -215,5 +218,8 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data).toHaveProperty('choices');
     expect(data.chapterNumber).toBe(2);
     expect(data.narrative).toBe('a new chapter goes here!');
+    expect(data.choices.length).toBe(3);
+    expect(data.choices.every((c) => c.id)).toBe(true);
+    expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
   });
 });

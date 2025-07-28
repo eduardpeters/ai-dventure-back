@@ -1,7 +1,12 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
 const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-  const { adventuresRepository, adventureTypesRepository, chaptersRepository } = fastify;
+  const {
+    adventuresRepository,
+    adventureTypesRepository,
+    chaptersRepository,
+    chapterChoicesRepository,
+  } = fastify;
 
   fastify.post(
     '/adventures',
@@ -107,7 +112,13 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       // Check for latest chapter in the story
       const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
 
-      console.log(latestChapter);
+      // For use in place of actual choice generation
+      const placeholderChoices = [
+        { action: 'first action' },
+        { action: 'second action' },
+        { action: 'third action' },
+      ];
+
       // If no previous chapters, begin the first
       if (!latestChapter) {
         const nextChapter = await chaptersRepository.create({
@@ -116,10 +127,13 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           narrative: 'the initial chapter goes here!',
           storySoFar: 'a choice has presented itself',
         });
+        const nextChoices = await chapterChoicesRepository.createMultiple(
+          placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
+        );
         return {
           chapterNumber: nextChapter.number,
           narrative: nextChapter.narrative,
-          choices: [],
+          choices: nextChoices.map((c) => ({ id: c.id, action: c.action })),
         };
       }
 
@@ -130,11 +144,14 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         narrative: 'a new chapter goes here!',
         storySoFar: 'another choice has presented itself',
       });
+      const nextChoices = await chapterChoicesRepository.createMultiple(
+        placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
+      );
 
       return {
         chapterNumber: nextChapter.number,
         narrative: nextChapter.narrative,
-        choices: [],
+        choices: nextChoices.map((c) => ({ id: c.id, action: c.action })),
       };
     },
   );

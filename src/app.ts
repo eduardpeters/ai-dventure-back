@@ -3,6 +3,7 @@ import dbPlugin from '@/plugins/db';
 import adventuresRepository from '@/plugins/adventuresRepository';
 import adventureTypesRepository from '@/plugins/adventureTypesRepository';
 import chaptersRepository from '@/plugins/chaptersRepository';
+import chapterChoicesRepository from '@/plugins/chapterChoicesRepository';
 import adventureRoutes from '@/routes/adventures';
 import adventureTypesRoutes from '@/routes/adventureTypes';
 
@@ -19,6 +20,7 @@ function build(options: AppOptions): FastifyInstance {
   app.register(adventuresRepository, { adventureHourlyRate: options.adventureHourlyRate });
   app.register(adventureTypesRepository);
   app.register(chaptersRepository);
+  app.register(chapterChoicesRepository);
 
   app.get('/', async (request, reply) => {
     return { hello: 'world!' };

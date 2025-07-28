@@ -14,6 +14,7 @@ type Chapter = typeof chaptersTable.$inferSelect;
 interface ChapterCreate {
   adventureId: string;
   number: number;
+  narrative: string;
   storySoFar: string;
 }
 
@@ -40,6 +41,7 @@ const createRepository = (fastify: FastifyInstance) => {
       const newChapter: typeof chaptersTable.$inferInsert = {
         adventure_id: newChapterData.adventureId,
         number: newChapterData.number,
+        narrative: newChapterData.narrative,
         story_so_far: newChapterData.storySoFar,
         created: new Date(),
       };

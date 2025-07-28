@@ -194,7 +194,12 @@ describe('Adventures Gameplay Injection Tests', () => {
     const adventureType = adventureTypes[0];
 
     const adventure = await db.createAdventure(adventureType.id, true);
-    const chapter = await db.createChapter(adventure.id, 1, 'an epic adventure has ensued');
+    const chapter = await db.createChapter(
+      adventure.id,
+      1,
+      'the initial chapter goes here',
+      'an epic adventure has ensued',
+    );
 
     const response = await app.inject({
       method: 'POST',

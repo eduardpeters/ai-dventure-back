@@ -113,11 +113,12 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         const nextChapter = await chaptersRepository.create({
           adventureId: adventure.id,
           number: 1,
+          narrative: 'the initial chapter goes here!',
           storySoFar: 'a choice has presented itself',
         });
         return {
           chapterNumber: nextChapter.number,
-          narrative: 'the initial chapter goes here!',
+          narrative: nextChapter.narrative,
           choices: [],
         };
       }
@@ -126,12 +127,13 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       const nextChapter = await chaptersRepository.create({
         adventureId: adventure.id,
         number: latestChapter.number + 1,
+        narrative: 'a new chapter goes here!',
         storySoFar: 'another choice has presented itself',
       });
 
       return {
         chapterNumber: nextChapter.number,
-        narrative: 'a new chapter goes here!',
+        narrative: nextChapter.narrative,
         choices: [],
       };
     },

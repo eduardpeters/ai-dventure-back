@@ -33,10 +33,15 @@ export default class TestDbClient {
     return result.rows[0];
   }
 
-  async createChapter(adventureId: string, chapterNumber: number, storySoFar: string) {
+  async createChapter(
+    adventureId: string,
+    chapterNumber: number,
+    narrative: string,
+    storySoFar: string,
+  ) {
     const text =
-      'INSERT INTO chapters (adventure_id, number, story_so_far, created) VALUES ($1, $2, $3, $4) RETURNING *';
-    const values = [adventureId, chapterNumber, storySoFar, new Date()];
+      'INSERT INTO chapters (adventure_id, number, narrative, story_so_far, created) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+    const values = [adventureId, chapterNumber, narrative, storySoFar, new Date()];
     const result = await this.query(text, values);
 
     return result.rows[0];

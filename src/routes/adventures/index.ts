@@ -112,6 +112,19 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       // Check for latest chapter in the story
       const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
 
+      // For use in place of actual chapter generation
+      const placeholderInitialChapter = {
+        adventureId: adventure.id,
+        number: 1,
+        narrative: 'the initial chapter goes here!',
+        storySoFar: 'a choice has presented itself',
+      };
+      const placeholderFollowupChapter = {
+        adventureId: adventure.id,
+        number: 0,
+        narrative: 'a new chapter goes here!',
+        storySoFar: 'another choice has presented itself',
+      };
       // For use in place of actual choice generation
       const placeholderChoices = [
         { action: 'first action' },
@@ -119,31 +132,12 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         { action: 'third action' },
       ];
 
-      // If no previous chapters, begin the first
-      if (!latestChapter) {
-        const nextChapter = await chaptersRepository.create({
-          adventureId: adventure.id,
-          number: 1,
-          narrative: 'the initial chapter goes here!',
-          storySoFar: 'a choice has presented itself',
-        });
-        const nextChoices = await chapterChoicesRepository.createMultiple(
-          placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
-        );
-        return {
-          chapterNumber: nextChapter.number,
-          narrative: nextChapter.narrative,
-          choices: nextChoices.map((c) => ({ id: c.id, action: c.action })),
-        };
-      }
+      // If no previous chapters, begin the first, otherwise, carry with the next
+      const nextChapterData = !latestChapter
+        ? placeholderInitialChapter
+        : { ...placeholderFollowupChapter, number: latestChapter.number + 1 };
 
-      // Otherwise, carry on with the story
-      const nextChapter = await chaptersRepository.create({
-        adventureId: adventure.id,
-        number: latestChapter.number + 1,
-        narrative: 'a new chapter goes here!',
-        storySoFar: 'another choice has presented itself',
-      });
+      const nextChapter = await chaptersRepository.create(nextChapterData);
       const nextChoices = await chapterChoicesRepository.createMultiple(
         placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
       );

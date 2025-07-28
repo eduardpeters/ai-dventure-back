@@ -136,8 +136,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       payload: {},
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body).toBe('Invalid Adventure Type');
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toBe('This Adventure Is Lost');
   });
 
   test('It receives a 400 if adventure is no longer active', async () => {
@@ -157,6 +157,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     });
 
     expect(response.statusCode).toBe(400);
+    expect(response.body).toBe('This Adventure Has Concluded');
   });
 
   test('It receives the first chapter if adventure is brand new', async () => {
@@ -188,7 +189,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
   });
 
-  test('It receives the next chapter if adventure has begun', async () => {
+  test('It receives a 400 response if no action is supplied when story is underway', async () => {
     onTestFinished(async () => {
       await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
     });
@@ -208,6 +209,63 @@ describe('Adventures Gameplay Injection Tests', () => {
       method: 'POST',
       url: `/adventures/${adventure.id}/forth`,
       payload: {},
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toBe('This Adventure Requires A Choice');
+  });
+
+  test("It receives a 404 response if the supplied action does not match the latest chapter's", async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(
+      adventure.id,
+      1,
+      'the initial chapter goes here',
+      'an epic adventure has ensued',
+    );
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {
+        choice: '00000000-0000-0000-0000-000000000000',
+      },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toBe('This Choice Is Lost');
+  });
+
+  test('It receives the next chapter if adventure has begun', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(
+      adventure.id,
+      1,
+      'the initial chapter goes here',
+      'an epic adventure has ensued',
+    );
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {
+        choice: chapterChoice.id,
+      },
     });
 
     expect(response.statusCode).toBe(200);

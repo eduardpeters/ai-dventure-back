@@ -47,6 +47,15 @@ export default class TestDbClient {
     return result.rows[0];
   }
 
+  async createChapterChoice(chapterId: string, action: string, chosen: boolean) {
+    const text =
+      'INSERT INTO chapter_choices (chapter_id, action, chosen) VALUES ($1, $2, $3) RETURNING *';
+    const values = [chapterId, action, chosen];
+    const result = await this.query(text, values);
+
+    return result.rows[0];
+  }
+
   async cleanupTables(tables: TableNames[]) {
     /* 
         Only allow valid table names for execution as we cannot use

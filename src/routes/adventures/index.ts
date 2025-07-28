@@ -103,7 +103,7 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       // Check if adventure ID is valid
       const adventure = await adventuresRepository.getById(id);
       if (!adventure) {
-        return reply.code(400).send('Invalid Adventure Type');
+        return reply.code(404).send('This Adventure Is Lost');
       }
       if (!adventure.active) {
         return reply.code(400).send('This Adventure Has Concluded');
@@ -111,6 +111,17 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Check for latest chapter in the story
       const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
+
+      // If adventure has started check if supplied choice is valid
+      if (latestChapter) {
+        if (!choice) {
+          return reply.code(400).send('This Adventure Requires A Choice');
+        }
+        const adventureChoice = await chapterChoicesRepository.getByIds(choice!, latestChapter.id);
+        if (!adventureChoice) {
+          return reply.code(404).send('This Choice Is Lost');
+        }
+      }
 
       // For use in place of actual chapter generation
       const placeholderInitialChapter = {

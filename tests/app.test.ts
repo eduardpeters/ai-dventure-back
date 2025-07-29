@@ -10,6 +10,7 @@ describe('Aventure Types Injection Tests', () => {
     logger: false,
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
+    maxAdventureChapters: 2,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -58,6 +59,7 @@ describe('Adventures Injection Tests', () => {
     logger: false,
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
+    maxAdventureChapters: 2,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -121,6 +123,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     logger: false,
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
+    maxAdventureChapters: 3,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -279,5 +282,41 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.choices.length).toBe(3);
     expect(data.choices.every((c) => c.id)).toBe(true);
     expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
+  });
+
+  test('It receives no choices for the final chapter', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(
+      adventure.id,
+      2,
+      'the initial chapter goes here',
+      'an epic adventure has ensued',
+    );
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: `/adventures/${adventure.id}/forth`,
+      payload: {
+        choice: chapterChoice.id,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('chapterNumber');
+    expect(data).toHaveProperty('narrative');
+    expect(data).toHaveProperty('choices');
+    expect(data.chapterNumber).toBe(3);
+    expect(data.narrative).toBe('a new chapter goes here!');
+    expect(data.choices.length).toBe(0);
   });
 });

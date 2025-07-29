@@ -1,6 +1,13 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
-const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+interface AdventuresRoutesOptions {
+  maxAdventureChapters: number;
+}
+
+const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
+  fastify: FastifyInstance,
+  options: AdventuresRoutesOptions,
+) => {
   const {
     adventuresRepository,
     adventureTypesRepository,
@@ -149,9 +156,12 @@ const plugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         : { ...placeholderFollowupChapter, number: latestChapter.number + 1 };
 
       const nextChapter = await chaptersRepository.create(nextChapterData);
-      const nextChoices = await chapterChoicesRepository.createMultiple(
-        placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
-      );
+      const nextChoices =
+        nextChapter.number < options.maxAdventureChapters
+          ? await chapterChoicesRepository.createMultiple(
+              placeholderChoices.map((c) => ({ ...c, chapterId: nextChapter.id })),
+            )
+          : [];
 
       return {
         chapterNumber: nextChapter.number,

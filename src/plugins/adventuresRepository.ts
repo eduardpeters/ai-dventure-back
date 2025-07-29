@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { eq, gt } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
 import { adventuresTable } from '@/db/schema';
-import { getMySqlColumnBuilders } from 'drizzle-orm/mysql-core/columns/all';
 
 declare module 'fastify' {
   export interface FastifyInstance {

@@ -11,6 +11,7 @@ interface AppOptions {
   logger: boolean;
   connectionString: string;
   adventureHourlyRate: number;
+  maxAdventureChapters: number;
 }
 
 function build(options: AppOptions): FastifyInstance {
@@ -31,7 +32,7 @@ function build(options: AppOptions): FastifyInstance {
     return { result: result.rows[0] };
   });
 
-  app.register(adventureRoutes);
+  app.register(adventureRoutes, { maxAdventureChapters: options.maxAdventureChapters });
   app.register(adventureTypesRoutes);
 
   return app;

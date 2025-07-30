@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { gt } from 'drizzle-orm';
+import { eq, gt } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
 import { adventuresTable } from '@/db/schema';
 
@@ -13,12 +13,19 @@ interface AdventuresRepositoryOptions {
   adventureHourlyRate: number;
 }
 
+type Adventure = typeof adventuresTable.$inferSelect;
+
+interface AdventureUpdate {
+  active: boolean;
+}
+
 const createRepository = (fastify: FastifyInstance, options: AdventuresRepositoryOptions) => {
   const { db } = fastify;
 
   return {
-    async create() {
+    async create(adventureTypeId: string): Promise<Adventure> {
       const newAdventure: typeof adventuresTable.$inferInsert = {
+        adventure_type_id: adventureTypeId,
         created: new Date(),
         active: true,
       };
@@ -36,6 +43,30 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
       const count = await db.$count(adventuresTable, gt(adventuresTable.created, oneHourLess));
 
       return count < options.adventureHourlyRate;
+    },
+
+    async getById(id: string): Promise<Adventure | null> {
+      const results = await db.select().from(adventuresTable).where(eq(adventuresTable.id, id));
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
+    },
+
+    async updateById(id: string, updateAdventureData: AdventureUpdate): Promise<Adventure | null> {
+      const results = await db
+        .update(adventuresTable)
+        .set({ ...updateAdventureData, last_modified: new Date() })
+        .where(eq(adventuresTable.id, id))
+        .returning();
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
     },
   };
 };

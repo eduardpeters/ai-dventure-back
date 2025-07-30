@@ -15,6 +15,10 @@ interface AdventuresRepositoryOptions {
 
 type Adventure = typeof adventuresTable.$inferSelect;
 
+interface AdventureUpdate {
+  active: boolean;
+}
+
 const createRepository = (fastify: FastifyInstance, options: AdventuresRepositoryOptions) => {
   const { db } = fastify;
 
@@ -43,6 +47,20 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
 
     async getById(id: string): Promise<Adventure | null> {
       const results = await db.select().from(adventuresTable).where(eq(adventuresTable.id, id));
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
+    },
+
+    async updateById(id: string, updateAdventureData: AdventureUpdate): Promise<Adventure | null> {
+      const results = await db
+        .update(adventuresTable)
+        .set({ ...updateAdventureData, last_modified: new Date() })
+        .where(eq(adventuresTable.id, id))
+        .returning();
 
       if (results.length === 0) {
         return null;

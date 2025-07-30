@@ -167,6 +167,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
             )
           : [];
 
+      if (nextChoices.length <= 0) {
+        await adventuresRepository.updateById(adventure.id, { active: false });
+      }
+
       return {
         chapterNumber: nextChapter.number,
         narrative: nextChapter.narrative,

@@ -286,6 +286,11 @@ describe('Adventures Gameplay Injection Tests', () => {
     // Check that choice is now flagged as chosen
     const updatedChapterChoice = await db.getChapterChoice(chapterChoice.id);
     expect(updatedChapterChoice.chosen).toBe(true);
+
+    // Check that adventure is still flagged as active
+    const updatedAdventure = await db.getAdventure(adventure.id);
+    expect(updatedAdventure.active).toBe(true);
+    expect(updatedAdventure.last_modified).toBeNull();
   });
 
   test('It receives no choices for the final chapter', async () => {
@@ -326,5 +331,10 @@ describe('Adventures Gameplay Injection Tests', () => {
     // Check that choice is now flagged as chosen
     const updatedChapterChoice = await db.getChapterChoice(chapterChoice.id);
     expect(updatedChapterChoice.chosen).toBe(true);
+
+    // Check that adventure is now flagged as complete
+    const updatedAdventure = await db.getAdventure(adventure.id);
+    expect(updatedAdventure.active).toBe(false);
+    expect(updatedAdventure.last_modified).not.toBeNull();
   });
 });

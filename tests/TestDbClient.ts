@@ -56,6 +56,14 @@ export default class TestDbClient {
     return result.rows[0];
   }
 
+  async getAdventure(adventureId: string) {
+    const text =
+      'SELECT id, active, created, last_modified, adventure_type_id FROM adventures WHERE id = $1';
+    const result = await this.query(text, [adventureId]);
+
+    return result.rows[0];
+  }
+
   async getChapterChoice(chapterId: string) {
     const text = 'SELECT id, action, chosen, chapter_id FROM chapter_choices WHERE id = $1';
     const result = await this.query(text, [chapterId]);

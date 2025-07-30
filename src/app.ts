@@ -18,7 +18,7 @@ function build(options: AppOptions): FastifyInstance {
   const app = fastify({ logger: options.logger });
 
   app.register(dbPlugin, { connectionString: options.connectionString });
-  app.register(adventuresRepository, { adventureHourlyRate: options.adventureHourlyRate });
+  app.register(adventuresRepository);
   app.register(adventureTypesRepository);
   app.register(chaptersRepository);
   app.register(chapterChoicesRepository);
@@ -32,7 +32,10 @@ function build(options: AppOptions): FastifyInstance {
     return { result: result.rows[0] };
   });
 
-  app.register(adventureRoutes, { maxAdventureChapters: options.maxAdventureChapters });
+  app.register(adventureRoutes, {
+    adventureHourlyRate: options.adventureHourlyRate,
+    maxAdventureChapters: options.maxAdventureChapters,
+  });
   app.register(adventureTypesRoutes);
 
   return app;

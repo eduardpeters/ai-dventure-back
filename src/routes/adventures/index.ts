@@ -155,6 +155,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         ? placeholderInitialChapter
         : { ...placeholderFollowupChapter, number: latestChapter.number + 1 };
 
+      // Persist changes in DB
+      if (latestChapter && choice) {
+        await chapterChoicesRepository.updateByIds(choice, latestChapter.id, { chosen: true });
+      }
       const nextChapter = await chaptersRepository.create(nextChapterData);
       const nextChoices =
         nextChapter.number < options.maxAdventureChapters

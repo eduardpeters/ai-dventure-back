@@ -16,6 +16,10 @@ interface ChapterChoiceCreate {
   action: string;
 }
 
+interface ChapterChoiceUpdate {
+  chosen: boolean;
+}
+
 const createRepository = (fastify: FastifyInstance) => {
   const { db } = fastify;
 
@@ -36,14 +40,36 @@ const createRepository = (fastify: FastifyInstance) => {
       return results[0];
     },
 
-    async createMultiple(newChapterData: ChapterChoiceCreate[]): Promise<ChapterChoice[]> {
-      const newChoices: (typeof chapterChoicesTable.$inferInsert)[] = newChapterData.map(
-        (data) => ({ chapter_id: data.chapterId, action: data.action, chosen: false }),
-      );
+    async createMultiple(newChoiceData: ChapterChoiceCreate[]): Promise<ChapterChoice[]> {
+      const newChoices: (typeof chapterChoicesTable.$inferInsert)[] = newChoiceData.map((data) => ({
+        chapter_id: data.chapterId,
+        action: data.action,
+        chosen: false,
+      }));
 
       const results = await db.insert(chapterChoicesTable).values(newChoices).returning();
 
       return results;
+    },
+
+    async updateByIds(
+      choiceId: string,
+      chapterId: string,
+      updateChoiceData: ChapterChoiceUpdate,
+    ): Promise<ChapterChoice | null> {
+      const results = await db
+        .update(chapterChoicesTable)
+        .set(updateChoiceData)
+        .where(
+          and(eq(chapterChoicesTable.id, choiceId), eq(chapterChoicesTable.chapter_id, chapterId)),
+        )
+        .returning();
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
     },
   };
 };

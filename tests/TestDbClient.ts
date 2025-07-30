@@ -56,6 +56,13 @@ export default class TestDbClient {
     return result.rows[0];
   }
 
+  async getChapterChoice(chapterId: string) {
+    const text = 'SELECT id, action, chosen, chapter_id FROM chapter_choices WHERE id = $1';
+    const result = await this.query(text, [chapterId]);
+
+    return result.rows[0];
+  }
+
   async cleanupTables(tables: TableNames[]) {
     /* 
         Only allow valid table names for execution as we cannot use

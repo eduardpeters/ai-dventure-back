@@ -282,6 +282,10 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.choices.length).toBe(3);
     expect(data.choices.every((c) => c.id)).toBe(true);
     expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
+
+    // Check that choice is now flagged as chosen
+    const updatedChapterChoice = await db.getChapterChoice(chapterChoice.id);
+    expect(updatedChapterChoice.chosen).toBe(true);
   });
 
   test('It receives no choices for the final chapter', async () => {
@@ -318,5 +322,9 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.chapterNumber).toBe(3);
     expect(data.narrative).toBe('a new chapter goes here!');
     expect(data.choices.length).toBe(0);
+
+    // Check that choice is now flagged as chosen
+    const updatedChapterChoice = await db.getChapterChoice(chapterChoice.id);
+    expect(updatedChapterChoice.chosen).toBe(true);
   });
 });

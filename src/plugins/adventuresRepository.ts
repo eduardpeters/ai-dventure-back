@@ -9,17 +9,13 @@ declare module 'fastify' {
   }
 }
 
-interface AdventuresRepositoryOptions {
-  adventureHourlyRate: number;
-}
-
 type Adventure = typeof adventuresTable.$inferSelect;
 
 interface AdventureUpdate {
   active: boolean;
 }
 
-const createRepository = (fastify: FastifyInstance, options: AdventuresRepositoryOptions) => {
+const createRepository = (fastify: FastifyInstance) => {
   const { db } = fastify;
 
   return {
@@ -35,14 +31,14 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
       return result[0];
     },
 
-    async canCreateAdventure() {
+    async canCreateAdventure(adventureHourlyRate: number) {
       const currentDate = new Date();
       const oneHourInMs = 60 * 60 * 1000;
       let oneHourLess = new Date();
       oneHourLess.setTime(currentDate.getTime() - oneHourInMs);
       const count = await db.$count(adventuresTable, gt(adventuresTable.created, oneHourLess));
 
-      return count < options.adventureHourlyRate;
+      return count < adventureHourlyRate;
     },
 
     async getById(id: string): Promise<Adventure | null> {
@@ -71,6 +67,6 @@ const createRepository = (fastify: FastifyInstance, options: AdventuresRepositor
   };
 };
 
-export default fastifyPlugin((fastify, options: AdventuresRepositoryOptions) => {
-  fastify.decorate('adventuresRepository', createRepository(fastify, options));
+export default fastifyPlugin((fastify) => {
+  fastify.decorate('adventuresRepository', createRepository(fastify));
 });

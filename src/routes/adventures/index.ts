@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
 interface AdventuresRoutesOptions {
+  adventureHourlyRate: number;
   maxAdventureChapters: number;
 }
 
@@ -50,7 +51,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         return reply.code(400).send('Invalid Adventure Type');
       }
 
-      const canCreate = await adventuresRepository.canCreateAdventure();
+      const canCreate = await adventuresRepository.canCreateAdventure(options.adventureHourlyRate);
       if (!canCreate) {
         return reply
           .code(503)

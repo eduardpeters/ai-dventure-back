@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import generativeAIServicePlugin from '@/services/generativeAIService';
 
 interface AdventuresRoutesOptions {
   adventureHourlyRate: number;
@@ -9,11 +10,13 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
   fastify: FastifyInstance,
   options: AdventuresRoutesOptions,
 ) => {
+  await fastify.register(generativeAIServicePlugin, { baseUrl: 'string', apiKey: 'string' });
   const {
     adventuresRepository,
     adventureTypesRepository,
     chaptersRepository,
     chapterChoicesRepository,
+    generativeAIService,
   } = fastify;
 
   fastify.post(
@@ -131,17 +134,26 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         }
       }
 
+      const generatedResult = !latestChapter
+        ? await generativeAIService.generate('the initial chapter goes here!')
+        : await generativeAIService.generate('a new chapter goes here!');
+      if (!generatedResult) {
+        // TODO: handle generation mishaps!
+        return;
+      }
+
+      const generatedNarrative = generatedResult.content.narrative;
       // For use in place of actual chapter generation
       const placeholderInitialChapter = {
         adventureId: adventure.id,
         number: 1,
-        narrative: 'the initial chapter goes here!',
+        narrative: generatedNarrative,
         storySoFar: 'a choice has presented itself',
       };
       const placeholderFollowupChapter = {
         adventureId: adventure.id,
         number: 0,
-        narrative: 'a new chapter goes here!',
+        narrative: generatedNarrative,
         storySoFar: 'another choice has presented itself',
       };
       // For use in place of actual choice generation

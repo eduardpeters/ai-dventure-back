@@ -1,6 +1,8 @@
 import { describe, expect, test, afterAll, onTestFinished } from 'vitest';
 import build from '../src/app';
 import TestDbClient from './TestDbClient';
+import mockGenerativeAIPlugin from './mockGenerativeAIService';
+import type { FastifyPluginAsync } from 'fastify';
 import * as vitestTypes from './vitest'; // meta type definitions for test environment
 
 const TEST_DATABASE_URL = import.meta.env.TEST_DATABASE_URL;
@@ -11,6 +13,7 @@ describe('Aventure Types Injection Tests', () => {
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
     maxAdventureChapters: 2,
+    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -60,6 +63,7 @@ describe('Adventures Injection Tests', () => {
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
     maxAdventureChapters: 2,
+    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -124,6 +128,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     adventureHourlyRate: 1,
     connectionString: TEST_DATABASE_URL,
     maxAdventureChapters: 3,
+    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
   });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {

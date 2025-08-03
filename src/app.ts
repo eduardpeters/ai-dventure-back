@@ -1,4 +1,4 @@
-import fastify, { FastifyInstance, FastifyHttpOptions } from 'fastify';
+import fastify, { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import dbPlugin from '@/plugins/db';
 import adventuresRepository from '@/plugins/adventuresRepository';
 import adventureTypesRepository from '@/plugins/adventureTypesRepository';
@@ -12,6 +12,7 @@ interface AppOptions {
   connectionString: string;
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  generativeAIPluginOverride?: FastifyPluginAsync;
 }
 
 function build(options: AppOptions): FastifyInstance {
@@ -35,6 +36,7 @@ function build(options: AppOptions): FastifyInstance {
   app.register(adventureRoutes, {
     adventureHourlyRate: options.adventureHourlyRate,
     maxAdventureChapters: options.maxAdventureChapters,
+    generativeAIPluginOverride: options.generativeAIPluginOverride,
   });
   app.register(adventureTypesRoutes);
 

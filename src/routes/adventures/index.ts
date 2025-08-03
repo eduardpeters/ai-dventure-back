@@ -4,13 +4,18 @@ import generativeAIServicePlugin from '@/services/generativeAIService';
 interface AdventuresRoutesOptions {
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  generativeAIPluginOverride?: FastifyPluginAsync;
 }
 
 const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
   fastify: FastifyInstance,
   options: AdventuresRoutesOptions,
 ) => {
-  await fastify.register(generativeAIServicePlugin, { baseUrl: 'string', apiKey: 'string' });
+  if (options.generativeAIPluginOverride) {
+    await fastify.register(options.generativeAIPluginOverride);
+  } else {
+    await fastify.register(generativeAIServicePlugin, { baseUrl: 'string', apiKey: 'string' });
+  }
   const {
     adventuresRepository,
     adventureTypesRepository,

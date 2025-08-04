@@ -296,10 +296,17 @@ describe('Adventures Gameplay Injection Tests', () => {
     const adventureType = adventureTypes[0];
 
     const adventure = await db.createAdventure(adventureType.id, true);
+    const firstChapter = await db.createChapter(
+      adventure.id,
+      1,
+      'this is the first choice chapter',
+      'an epic adventure has ensued',
+    );
+    await db.createChapterChoice(firstChapter.id, 'a brave action', true);
     const chapter = await db.createChapter(
       adventure.id,
       2,
-      'the initial chapter goes here',
+      'this is the final choice chapter',
       'an epic adventure has ensued',
     );
     const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { and, eq } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
-import { chapterChoicesTable } from '@/db/schema';
+import { chapterChoicesTable, chaptersTable } from '@/db/schema';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -9,7 +9,7 @@ declare module 'fastify' {
   }
 }
 
-type ChapterChoice = typeof chapterChoicesTable.$inferSelect;
+export type ChapterChoice = typeof chapterChoicesTable.$inferSelect;
 
 interface ChapterChoiceCreate {
   chapterId: string;
@@ -24,6 +24,21 @@ const createRepository = (fastify: FastifyInstance) => {
   const { db } = fastify;
 
   return {
+    async getByAdventureId(adventureId: string): Promise<ChapterChoice[]> {
+      const results = await db
+        .select({
+          id: chapterChoicesTable.id,
+          action: chapterChoicesTable.action,
+          chosen: chapterChoicesTable.chosen,
+          chapter_id: chapterChoicesTable.chapter_id,
+        })
+        .from(chapterChoicesTable)
+        .innerJoin(chaptersTable, eq(chapterChoicesTable.chapter_id, chaptersTable.id))
+        .where(eq(chaptersTable.adventure_id, adventureId));
+
+      return results;
+    },
+
     async getByIds(choiceId: string, chapterId: string): Promise<ChapterChoice | null> {
       const results = await db
         .select()

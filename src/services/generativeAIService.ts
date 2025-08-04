@@ -7,9 +7,23 @@ declare module 'fastify' {
   }
 }
 
+export interface Message {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+}
+
+export interface StoryPromptData {
+  messages: Message[];
+}
+
+interface GeneratedOption {
+  action: string;
+}
+
 interface GenerativeAIResponse {
   content: {
     narrative: string;
+    options: GeneratedOption[];
   };
 }
 
@@ -20,7 +34,7 @@ export interface GenerativeAIServiceOptions extends FastifyPluginOptions {
 
 const createService = (options: GenerativeAIServiceOptions) => {
   return {
-    async generate(prompt: string): Promise<GenerativeAIResponse | null> {
+    async generate(promptData: StoryPromptData): Promise<GenerativeAIResponse | null> {
       const generated = {
         content: {
           narrative: prompt,

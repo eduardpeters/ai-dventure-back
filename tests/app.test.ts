@@ -6,15 +6,16 @@ import type { FastifyPluginAsync } from 'fastify';
 import * as vitestTypes from './vitest'; // meta type definitions for test environment
 
 const TEST_DATABASE_URL = import.meta.env.TEST_DATABASE_URL;
+const TEST_APP_OPTIONS = {
+  logger: false,
+  adventureHourlyRate: 1,
+  connectionString: TEST_DATABASE_URL,
+  maxAdventureChapters: 2,
+  generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
+};
 
 describe('Aventure Types Injection Tests', () => {
-  const app = build({
-    logger: false,
-    adventureHourlyRate: 1,
-    connectionString: TEST_DATABASE_URL,
-    maxAdventureChapters: 2,
-    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
-  });
+  const app = build(TEST_APP_OPTIONS);
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();
@@ -58,13 +59,7 @@ describe('Aventure Types Injection Tests', () => {
 });
 
 describe('Adventures Injection Tests', () => {
-  const app = build({
-    logger: false,
-    adventureHourlyRate: 1,
-    connectionString: TEST_DATABASE_URL,
-    maxAdventureChapters: 2,
-    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
-  });
+  const app = build(TEST_APP_OPTIONS);
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();
@@ -123,13 +118,7 @@ describe('Adventures Injection Tests', () => {
 });
 
 describe('Adventures Gameplay Injection Tests', () => {
-  const app = build({
-    logger: false,
-    adventureHourlyRate: 1,
-    connectionString: TEST_DATABASE_URL,
-    maxAdventureChapters: 3,
-    generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
-  });
+  const app = build({ ...TEST_APP_OPTIONS, maxAdventureChapters: 3 });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();

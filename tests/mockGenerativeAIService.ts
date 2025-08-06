@@ -44,8 +44,7 @@ const createService = (options: unknown) => {
       // Choices mock generation
       let generatedOptions = placeholderChoices;
       if (
-        promptData.messages[promptData.messages.length - 2].content ===
-        'this is the final choice chapter'
+        promptData.messages[promptData.messages.length - 1].content === 'this is my last choice!'
       ) {
         generatedOptions = [];
       }

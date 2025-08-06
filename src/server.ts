@@ -4,7 +4,7 @@ const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 8080;
 const adventureHourlyRate = process.env.HOURLY_RATE ? parseInt(process.env.HOURLY_RATE) : 10;
 const maxAdventureChapters = process.env.ADVENTURE_LENGTH
   ? parseInt(process.env.ADVENTURE_LENGTH)
-  : 6;
+  : 5;
 const connectionString = process.env.DATABASE_URL!;
 
 async function start() {

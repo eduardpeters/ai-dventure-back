@@ -118,7 +118,7 @@ describe('Adventures Injection Tests', () => {
 });
 
 describe('Adventures Gameplay Injection Tests', () => {
-  const app = build({ ...TEST_APP_OPTIONS, maxAdventureChapters: 3 });
+  const app = build({ ...TEST_APP_OPTIONS, maxAdventureChapters: 2 });
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
     app.close();

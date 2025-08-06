@@ -166,10 +166,17 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
           promptData.messages.push({ role: 'user', content: chapterChoice.action });
         }
       }
-      // Add current choice
+      // Add current user prompt
+      const currentChoiceMessage: Message = { role: 'user', content: '' };
       if (choice) {
-        promptData.messages.push({ role: 'user', content: 'adventure choice!' });
+        if (chapters.length >= options.maxAdventureChapters) {
+          currentChoiceMessage.content = 'this is my last choice!';
+        } else {
+          currentChoiceMessage.content = 'adventure choice!';
+        }
+        promptData.messages.push(currentChoiceMessage);
       }
+
       console.log('messages', promptData);
 
       const generatedResult = await generativeAIService.generate(promptData);

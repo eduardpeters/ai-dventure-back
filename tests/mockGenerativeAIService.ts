@@ -1,33 +1,20 @@
 import fastifyPlugin from 'fastify-plugin';
+import type { StoryPromptData, GenerativeAIResponse } from '../src/services/generativeAIService';
 
 interface GeneratedOption {
   action: string;
 }
 
-interface GenerativeAIResponse {
-  content: {
-    narrative: string;
-    options: GeneratedOption[];
-  };
-}
 // For use in place of actual narrative generation
 const firstNarrative = 'the initial chapter goes here!';
 const nextNarratives = 'a new chapter goes here!';
+const finalNarrative = 'this is how the story ends!';
 // For use in place of actual choice generation
 const placeholderChoices: GeneratedOption[] = [
   { action: 'first action' },
   { action: 'second action' },
   { action: 'third action' },
 ];
-
-interface Message {
-  role: 'system' | 'assistant' | 'user';
-  content: string;
-}
-
-interface StoryPromptData {
-  messages: Message[];
-}
 
 const createService = (options: unknown) => {
   void options;
@@ -46,6 +33,7 @@ const createService = (options: unknown) => {
       if (
         promptData.messages[promptData.messages.length - 1].content === 'this is my last choice!'
       ) {
+        generatedNarrative = finalNarrative;
         generatedOptions = [];
       }
 

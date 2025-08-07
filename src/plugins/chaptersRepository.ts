@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { desc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
 import { chaptersTable } from '@/db/schema';
 
@@ -22,6 +22,16 @@ const createRepository = (fastify: FastifyInstance) => {
   const { db } = fastify;
 
   return {
+    async getByAdventureIdOrdered(adventureId: string): Promise<Chapter[]> {
+      const results = await db
+        .select()
+        .from(chaptersTable)
+        .where(eq(chaptersTable.adventure_id, adventureId))
+        .orderBy(asc(chaptersTable.number));
+
+      return results;
+    },
+
     async getLatestByAdventureId(adventureId: string): Promise<Chapter | null> {
       const results = await db
         .select()

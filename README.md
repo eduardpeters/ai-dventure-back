@@ -45,6 +45,8 @@ HOURLY_RATE=5
 ADVENTURE_LENGTH=5
 ```
 
+After setting up a database instance and adding the connection string to the `.env` file, use the `npm run drizzle:migrate` command to run migrations.
+
 ## Development Setup
 
 When developing you will want to run and expand the tests. Be aware that instead of mocking the database, a working test database is supplied to the application in integration tests.
@@ -56,6 +58,7 @@ TEST_DATABASE_URL=""
 ```
 
 The test runner will only inject the expected test database connection string to avoid mishaps.
+To set up this testing database create the database and update the environment variable, then use the `npm run test:drizzle:migrate"` to run migrations in it.
 
 ### Test Mocks
 

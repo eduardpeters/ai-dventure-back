@@ -326,7 +326,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data).toHaveProperty('narrative');
     expect(data).toHaveProperty('choices');
     expect(data.chapterNumber).toBe(3);
-    expect(data.narrative).toBe('a new chapter goes here!');
+    expect(data.narrative).toBe('this is how the story ends!');
     expect(data.choices.length).toBe(0);
 
     // Check that choice is now flagged as chosen

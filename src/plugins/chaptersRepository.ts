@@ -15,7 +15,6 @@ interface ChapterCreate {
   adventureId: string;
   number: number;
   narrative: string;
-  storySoFar: string;
 }
 
 const createRepository = (fastify: FastifyInstance) => {
@@ -52,7 +51,6 @@ const createRepository = (fastify: FastifyInstance) => {
         adventure_id: newChapterData.adventureId,
         number: newChapterData.number,
         narrative: newChapterData.narrative,
-        story_so_far: newChapterData.storySoFar,
         created: new Date(),
       };
 

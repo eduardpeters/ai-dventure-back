@@ -193,7 +193,6 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         adventureId: adventure.id,
         number: chapters.length + 1,
         narrative: generatedNarrative,
-        storySoFar: 'a choice has presented itself',
       };
 
       // Persist changes in DB

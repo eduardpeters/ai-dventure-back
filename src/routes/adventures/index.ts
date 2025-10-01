@@ -187,25 +187,6 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       console.log('gen result', generatedResult);
 
       const generatedNarrative = generatedResult.content.narrative;
-      // For use in place of actual chapter generation
-      const placeholderInitialChapter = {
-        adventureId: adventure.id,
-        number: 1,
-        narrative: generatedNarrative,
-        storySoFar: 'a choice has presented itself',
-      };
-      const placeholderFollowupChapter = {
-        adventureId: adventure.id,
-        number: 0,
-        narrative: generatedNarrative,
-        storySoFar: 'another choice has presented itself',
-      };
-      // For use in place of actual choice generation
-      const placeholderChoices = [
-        { action: 'first action' },
-        { action: 'second action' },
-        { action: 'third action' },
-      ];
 
       // If no previous chapters, begin the first, otherwise, carry with the next
       const nextChapterData = {
@@ -216,14 +197,16 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       };
 
       // Persist changes in DB
-      if (latestChapter && choice) {
-        await chapterChoicesRepository.updateByIds(choice, latestChapter.id, { chosen: true });
-      }
       const nextChapter = await chaptersRepository.create(nextChapterData);
       const generatedChoices = generatedResult.content.options.map((opt) => ({
         chapterId: nextChapter.id,
         action: opt.action,
       }));
+
+      if (latestChapter && choice) {
+        await chapterChoicesRepository.updateByIds(choice, latestChapter.id, { chosen: true });
+      }
+
       let nextChoices: ChapterChoice[] = [];
       if (generatedChoices.length > 0) {
         nextChoices = await chapterChoicesRepository.createMultiple(generatedChoices);

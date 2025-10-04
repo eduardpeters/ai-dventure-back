@@ -141,13 +141,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         }
       }
 
-      // Retrieve all chapters so far
-      const chapters = await chaptersRepository.getByAdventureIdOrdered(adventure.id);
-      console.log('all chapters', chapters);
-
-      // Retrieve all choices so far
-      const choices = await chapterChoicesRepository.getByAdventureId(adventure.id);
-      console.log('choices for adventure!', choices);
+      const populatedChapters = await chaptersRepository.getByAdventureIdOrderedWithChoices(
+        adventure.id,
+      );
+      console.log('FULL RETRIEVAL', populatedChapters);
 
       // Build story so far
       const promptData: StoryPromptData = {
@@ -156,12 +153,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
           { role: 'user', content: 'Begin Adventure' },
         ],
       };
-      for (const chapter of chapters) {
+      for (const chapterWithChoices of populatedChapters) {
+        const { chapters: chapter, chapter_choices: chapterChoice } = chapterWithChoices;
         const messageAssistant: Message = { role: 'assistant', content: chapter.narrative };
         promptData.messages.push(messageAssistant);
-        const chapterChoice = choices.find(
-          (choice) => choice.chapter_id === chapter.id && choice.chosen,
-        );
         if (chapterChoice) {
           promptData.messages.push({ role: 'user', content: chapterChoice.action });
         }
@@ -169,7 +164,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       // Add current user prompt
       const currentChoiceMessage: Message = { role: 'user', content: '' };
       if (choice) {
-        if (chapters.length >= options.maxAdventureChapters) {
+        if (populatedChapters.length >= options.maxAdventureChapters) {
           currentChoiceMessage.content = 'this is my last choice!';
         } else {
           currentChoiceMessage.content = 'adventure choice!';
@@ -191,7 +186,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       // If no previous chapters, begin the first, otherwise, carry with the next
       const nextChapterData = {
         adventureId: adventure.id,
-        number: chapters.length + 1,
+        number: populatedChapters.length + 1,
         narrative: generatedNarrative,
       };
 

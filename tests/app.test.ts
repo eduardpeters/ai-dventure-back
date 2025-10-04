@@ -195,12 +195,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     const adventureType = adventureTypes[0];
 
     const adventure = await db.createAdventure(adventureType.id, true);
-    const chapter = await db.createChapter(
-      adventure.id,
-      1,
-      'the initial chapter goes here',
-      'an epic adventure has ensued',
-    );
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
 
     const response = await app.inject({
       method: 'POST',
@@ -221,12 +216,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     const adventureType = adventureTypes[0];
 
     const adventure = await db.createAdventure(adventureType.id, true);
-    const chapter = await db.createChapter(
-      adventure.id,
-      1,
-      'the initial chapter goes here',
-      'an epic adventure has ensued',
-    );
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
 
     const response = await app.inject({
       method: 'POST',
@@ -249,12 +239,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     const adventureType = adventureTypes[0];
 
     const adventure = await db.createAdventure(adventureType.id, true);
-    const chapter = await db.createChapter(
-      adventure.id,
-      1,
-      'the initial chapter goes here',
-      'an epic adventure has ensued',
-    );
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
     const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
 
     const response = await app.inject({
@@ -300,15 +285,9 @@ describe('Adventures Gameplay Injection Tests', () => {
       adventure.id,
       1,
       'this is the first choice chapter',
-      'an epic adventure has ensued',
     );
     await db.createChapterChoice(firstChapter.id, 'a brave action', true);
-    const chapter = await db.createChapter(
-      adventure.id,
-      2,
-      'this is the final choice chapter',
-      'an epic adventure has ensued',
-    );
+    const chapter = await db.createChapter(adventure.id, 2, 'this is the final choice chapter');
     const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
 
     const response = await app.inject({
@@ -326,7 +305,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data).toHaveProperty('narrative');
     expect(data).toHaveProperty('choices');
     expect(data.chapterNumber).toBe(3);
-    expect(data.narrative).toBe('a new chapter goes here!');
+    expect(data.narrative).toBe('this is how the story ends!');
     expect(data.choices.length).toBe(0);
 
     // Check that choice is now flagged as chosen

@@ -19,7 +19,6 @@ export const chaptersTable = pgTable('chapters', {
   id: uuid().primaryKey().defaultRandom(),
   number: smallint().notNull(),
   narrative: text().notNull(),
-  story_so_far: text().notNull(),
   created: timestamp().notNull(),
   adventure_id: uuid()
     .notNull()

@@ -147,10 +147,17 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       console.log('FULL RETRIEVAL', populatedChapters);
 
       // Build story so far
+      const CHOICES_PER_CHAPTER = 3;
       const promptData: StoryPromptData = {
         messages: [
-          { role: 'system', content: 'System Prompt' },
-          { role: 'user', content: 'Begin Adventure' },
+          { role: 'system', content: generativeAIService.getSystemPrompt(CHOICES_PER_CHAPTER) },
+          {
+            role: 'user',
+            content: generativeAIService.getStartingUserPrompt(
+              options.maxAdventureChapters,
+              'Give me an adventure in a fantasy setting',
+            ),
+          },
         ],
       };
       for (const chapterWithChoices of populatedChapters) {
@@ -158,17 +165,22 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         const messageAssistant: Message = { role: 'assistant', content: chapter.narrative };
         promptData.messages.push(messageAssistant);
         if (chapterChoice) {
-          promptData.messages.push({ role: 'user', content: chapterChoice.action });
+          promptData.messages.push({
+            role: 'user',
+            content: generativeAIService.getChoiceUserPrompt(chapterChoice.action),
+          });
         }
       }
       // Add current user prompt
-      const currentChoiceMessage: Message = { role: 'user', content: '' };
       if (choice) {
+        let currentChoiceContent = choice;
         if (populatedChapters.length >= options.maxAdventureChapters) {
-          currentChoiceMessage.content = 'this is my last choice!';
-        } else {
-          currentChoiceMessage.content = 'adventure choice!';
+          currentChoiceContent = 'this is my last choice!';
         }
+        const currentChoiceMessage: Message = {
+          role: 'user',
+          content: generativeAIService.getChoiceUserPrompt(currentChoiceContent),
+        };
         promptData.messages.push(currentChoiceMessage);
       }
 

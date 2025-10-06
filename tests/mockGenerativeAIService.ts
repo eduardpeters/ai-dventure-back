@@ -19,6 +19,18 @@ const placeholderChoices: GeneratedOption[] = [
 const createService = (options: unknown) => {
   void options;
   return {
+    getSystemPrompt(): string {
+      return 'system prompt';
+    },
+
+    getStartingUserPrompt(): string {
+      return 'first user prompt';
+    },
+
+    getChoiceUserPrompt(choice: string): string {
+      return choice;
+    },
+
     async generate(promptData: StoryPromptData): Promise<GenerativeAIResponse | null> {
       // Narrative mock generation
       let generatedNarrative: string;

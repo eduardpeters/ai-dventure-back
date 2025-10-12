@@ -1,4 +1,5 @@
 import fastifyPlugin from 'fastify-plugin';
+import replace from '@/utils/replace';
 import type { FastifyPluginOptions } from 'fastify';
 
 declare module 'fastify' {
@@ -93,29 +94,23 @@ What follows is the user's final choice, you must end the story in your reply.
 const createService = (options: GenerativeAIServiceOptions) => {
   return {
     getSystemPrompt(numberOfChoices: number): string {
-      const replacementMap: Record<string, string> = { '%N_CHOICES%': numberOfChoices.toString() };
-      return SYSTEM_PROMPT.replace(/%\w+%/g, function (match: string) {
-        return replacementMap[match] || match;
-      });
+      const replacementMap = { '%N_CHOICES%': numberOfChoices.toString() };
+      return replace(SYSTEM_PROMPT, replacementMap);
     },
 
     getStartingUserPrompt(numberOfChapters: number, storySetting: string): string {
-      const replacementMap: Record<string, string> = {
+      const replacementMap = {
         '%CHAPTERS%': numberOfChapters.toString(),
         '%SETTING%': storySetting,
       };
-      return INITIAL_USER_PROMPT.replace(/%\w+%/g, function (match: string) {
-        return replacementMap[match] || match;
-      });
+      return replace(INITIAL_USER_PROMPT, replacementMap);
     },
 
     getChoiceUserPrompt(choice: string): string {
-      const replacementMap: Record<string, string> = {
+      const replacementMap = {
         '%CHOICE%': choice,
       };
-      return CHOICE_USER_PROMPT.replace(/%\w+%/g, function (match: string) {
-        return replacementMap[match] || match;
-      });
+      return replace(CHOICE_USER_PROMPT, replacementMap);
     },
 
     async generate(promptData: StoryPromptData): Promise<GenerativeAIResponse | null> {

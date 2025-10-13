@@ -6,6 +6,7 @@ import type { ChapterChoice } from '@/plugins/chapterChoicesRepository';
 interface AdventuresRoutesOptions {
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  genAIApiKey: string;
   generativeAIPluginOverride?: FastifyPluginAsync;
 }
 
@@ -16,7 +17,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
   if (options.generativeAIPluginOverride) {
     await fastify.register(options.generativeAIPluginOverride);
   } else {
-    await fastify.register(generativeAIServicePlugin, { baseUrl: 'string', apiKey: 'string' });
+    await fastify.register(generativeAIServicePlugin, {
+      baseUrl: '',
+      apiKey: options.genAIApiKey,
+    });
   }
   const {
     adventuresRepository,

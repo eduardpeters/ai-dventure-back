@@ -12,6 +12,7 @@ interface AppOptions {
   connectionString: string;
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  genAIApiKey: string;
   generativeAIPluginOverride?: FastifyPluginAsync;
 }
 
@@ -36,6 +37,7 @@ function build(options: AppOptions): FastifyInstance {
   app.register(adventureRoutes, {
     adventureHourlyRate: options.adventureHourlyRate,
     maxAdventureChapters: options.maxAdventureChapters,
+    genAIApiKey: options.genAIApiKey,
     generativeAIPluginOverride: options.generativeAIPluginOverride,
   });
   app.register(adventureTypesRoutes);

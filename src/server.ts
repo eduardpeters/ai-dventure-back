@@ -6,9 +6,16 @@ const maxAdventureChapters = process.env.ADVENTURE_LENGTH
   ? parseInt(process.env.ADVENTURE_LENGTH)
   : 5;
 const connectionString = process.env.DATABASE_URL!;
+const genAIApiKey = process.env.GENAI_API_KEY!;
 
 async function start() {
-  const app = build({ logger: true, adventureHourlyRate, connectionString, maxAdventureChapters });
+  const app = build({
+    logger: true,
+    adventureHourlyRate,
+    connectionString,
+    maxAdventureChapters,
+    genAIApiKey,
+  });
   try {
     await app.listen({ port, host: '0.0.0.0' });
   } catch (error) {

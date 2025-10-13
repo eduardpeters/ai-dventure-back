@@ -11,6 +11,7 @@ const TEST_APP_OPTIONS = {
   adventureHourlyRate: 1,
   connectionString: TEST_DATABASE_URL,
   maxAdventureChapters: 2,
+  genAIApiKey: '',
   generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
 };
 

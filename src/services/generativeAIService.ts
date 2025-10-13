@@ -1,4 +1,5 @@
 import fastifyPlugin from 'fastify-plugin';
+import { Mistral } from '@mistralai/mistralai';
 import replace from '@/utils/replace';
 import type { FastifyPluginOptions } from 'fastify';
 
@@ -91,7 +92,11 @@ What follows is the user's final choice, you must end the story in your reply.
 </instructions>
 `;
 
+const MISTRAL_SMALL = 'mistral-small-latest';
+
 const createService = (options: GenerativeAIServiceOptions) => {
+  const client = new Mistral({ apiKey: options.apiKey });
+
   return {
     getSystemPrompt(numberOfChoices: number): string {
       const replacementMap = { '%N_CHOICES%': numberOfChoices.toString() };
@@ -114,6 +119,14 @@ const createService = (options: GenerativeAIServiceOptions) => {
     },
 
     async generate(promptData: StoryPromptData): Promise<GenerativeAIResponse | null> {
+      console.log('Generating with Mistral');
+      const response = await client.chat.complete({
+        model: MISTRAL_SMALL,
+        messages: promptData.messages,
+        responseFormat: { type: 'json_object' },
+      });
+      console.log(response);
+
       // Narrative mock generation
       let generatedNarrative: string;
       if (promptData.messages.length <= 2) {

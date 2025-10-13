@@ -134,12 +134,13 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       // Check for latest chapter in the story
       const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
 
-      // If adventure has started check if supplied choice is valid
+      // If adventure has started check if supplied choice is valid and store it
+      let adventureChoice: ChapterChoice | null = null;
       if (latestChapter) {
         if (!choice) {
           return reply.code(400).send('This Adventure Requires A Choice');
         }
-        const adventureChoice = await chapterChoicesRepository.getByIds(choice!, latestChapter.id);
+        adventureChoice = await chapterChoicesRepository.getByIds(choice!, latestChapter.id);
         if (!adventureChoice) {
           return reply.code(404).send('This Choice Is Lost');
         }
@@ -176,14 +177,13 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         }
       }
       // Add current user prompt
-      if (choice) {
-        let currentChoiceContent = choice;
+      if (choice && adventureChoice) {
         if (populatedChapters.length >= options.maxAdventureChapters) {
-          currentChoiceContent = 'this is my last choice!';
+          console.log('maybe add ending ensuring instructions??');
         }
         const currentChoiceMessage: Message = {
           role: 'user',
-          content: generativeAIService.getChoiceUserPrompt(currentChoiceContent),
+          content: generativeAIService.getChoiceUserPrompt(adventureChoice.action),
         };
         promptData.messages.push(currentChoiceMessage);
       }
@@ -197,7 +197,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       }
       console.log('gen result', generatedResult);
 
-      const generatedNarrative = generatedResult.content.narrative;
+      const generatedNarrative = generatedResult.narrative;
 
       // If no previous chapters, begin the first, otherwise, carry with the next
       const nextChapterData = {
@@ -208,9 +208,9 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
 
       // Persist changes in DB
       const nextChapter = await chaptersRepository.create(nextChapterData);
-      const generatedChoices = generatedResult.content.options.map((opt) => ({
+      const generatedChoices = generatedResult.options.map((opt) => ({
         chapterId: nextChapter.id,
-        action: opt.action,
+        action: opt,
       }));
 
       if (latestChapter && choice) {

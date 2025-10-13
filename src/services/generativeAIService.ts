@@ -23,10 +23,8 @@ interface GeneratedOption {
 }
 
 export interface GenerativeAIResponse {
-  content: {
-    narrative: string;
-    options: GeneratedOption[];
-  };
+  narrative: string;
+  options: string[];
 }
 
 export interface GenerativeAIServiceOptions extends FastifyPluginOptions {
@@ -73,7 +71,7 @@ If the ending has been reached you will provide an empty array in the "options" 
 const INITIAL_USER_PROMPT = `
 <intructions>
 Begin a new story with the setting that follows.
-The story will have a length of %CHAPTERS% with choices, after these the story must end.
+The story will have a length of %CHAPTERS% chapters with choices, after these the story must end.
 </instructions>
 <setting>
 %SETTING%
@@ -126,7 +124,25 @@ const createService = (options: GenerativeAIServiceOptions) => {
         responseFormat: { type: 'json_object' },
       });
       console.log(response);
+      console.log(response.choices[0].message);
 
+      const responseJSON = response.choices[0].message.content;
+      if (!responseJSON || typeof responseJSON !== 'string') {
+        throw new Error('This response is not valid?');
+      }
+
+      const parsed = JSON.parse(responseJSON) as {
+        narrative: string;
+        options: string[];
+      };
+
+      const generated = {
+        narrative: parsed.narrative,
+        options: parsed.options,
+      };
+
+      return generated;
+      /*
       // Narrative mock generation
       let generatedNarrative: string;
       if (promptData.messages.length <= 2) {
@@ -152,6 +168,7 @@ const createService = (options: GenerativeAIServiceOptions) => {
       };
 
       return generated;
+      */
     },
   };
 };

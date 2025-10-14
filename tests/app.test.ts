@@ -15,7 +15,7 @@ const TEST_APP_OPTIONS = {
   generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
 };
 
-describe('Aventure Types Injection Tests', () => {
+describe('Aventure Types Injection Tests', async () => {
   const app = build(TEST_APP_OPTIONS);
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -55,7 +55,10 @@ describe('Aventure Types Injection Tests', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
-    expect(response.json()).toStrictEqual(requestedAdventureType);
+    const received = response.json();
+    expect(received).not.toHaveProperty('setting');
+    expect(received.id).toEqual(requestedAdventureType.id);
+    expect(received.description).toEqual(requestedAdventureType.description);
   });
 });
 

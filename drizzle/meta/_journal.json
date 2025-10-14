@@ -43,6 +43,13 @@
       "when": 1759346143955,
       "tag": "0005_typical_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1760469472158,
+      "tag": "0006_left_wither",
+      "breakpoints": true
     }
   ]
 }

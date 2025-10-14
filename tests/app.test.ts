@@ -289,7 +289,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     );
     await db.createChapterChoice(firstChapter.id, 'a brave action', true);
     const chapter = await db.createChapter(adventure.id, 2, 'this is the final choice chapter');
-    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave final action', false);
 
     const response = await app.inject({
       method: 'POST',

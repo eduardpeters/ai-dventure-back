@@ -4,7 +4,7 @@ Backend code for the ai-dventure app project
 
 ## Features
 
-- Uses generative AI to create the stories
+- Uses generative AI (Mistral) to create the stories
 - Handles the gameplay flow with a set length
 - Implements "wallet protection measures" to prevent service abuse
 
@@ -23,6 +23,7 @@ interface AppOptions {
   connectionString: string;
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  genAIApiKey: string;
   generativeAIPluginOverride?: FastifyPluginAsync;
 }
 ```
@@ -31,6 +32,7 @@ interface AppOptions {
 - `connectionString`: used by Drizzle to connect to the database
 - `adventureHourlyRate`: limits the hourly amount of new adventures that are generated
 - `maxAdventureChapters`: limits the amount of interactive chapters for the stories
+- `genAIApiKey`: API key for the Generative AI service used. This project is set up with the Mistral client
 - `generativeAIPluginOverride`: optional, used by the tests suite to supply a mock to avoid using the real service
 
 ## General Setup
@@ -43,6 +45,7 @@ API_PORT=8080
 DATABASE_URL=""
 HOURLY_RATE=5
 ADVENTURE_LENGTH=5
+GENAI_API_KEY=""
 ```
 
 After setting up a database instance and adding the connection string to the `.env` file, use the `npm run drizzle:migrate` command to run migrations.

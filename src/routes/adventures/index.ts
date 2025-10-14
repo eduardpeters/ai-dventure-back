@@ -123,7 +123,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       const { choice } = request.body as { choice: string | undefined };
 
       // Check if adventure ID is valid
-      const adventure = await adventuresRepository.getById(id);
+      const adventure = await adventuresRepository.getByIdWithSetting(id);
       if (!adventure) {
         return reply.code(404).send('This Adventure Is Lost');
       }
@@ -149,7 +149,6 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       const populatedChapters = await chaptersRepository.getByAdventureIdOrderedWithChoices(
         adventure.id,
       );
-      console.log('FULL RETRIEVAL', populatedChapters);
 
       // Build story so far
       const CHOICES_PER_CHAPTER = 3;
@@ -160,7 +159,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
             role: 'user',
             content: generativeAIService.getStartingUserPrompt(
               options.maxAdventureChapters,
-              'Give me an adventure in a fantasy setting',
+              adventure.setting,
             ),
           },
         ],
@@ -188,14 +187,11 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         promptData.messages.push(currentChoiceMessage);
       }
 
-      console.log('messages', promptData);
-
       const generatedResult = await generativeAIService.generate(promptData);
       if (!generatedResult) {
         // TODO: handle generation mishaps!
         return;
       }
-      console.log('gen result', generatedResult);
 
       const generatedNarrative = generatedResult.narrative;
 

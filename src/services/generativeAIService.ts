@@ -90,10 +90,10 @@ const createService = (options: GenerativeAIServiceOptions) => {
       return replace(SYSTEM_PROMPT, replacementMap);
     },
 
-    getStartingUserPrompt(numberOfChapters: number, storySetting: string): string {
+    getStartingUserPrompt(numberOfChapters: number, storySetting: string | null): string {
       const replacementMap = {
         '%CHAPTERS%': numberOfChapters.toString(),
-        '%SETTING%': storySetting,
+        '%SETTING%': storySetting || 'Surprise me! Choose a random setting!',
       };
       return replace(INITIAL_USER_PROMPT, replacementMap);
     },

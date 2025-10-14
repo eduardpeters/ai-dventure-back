@@ -32,17 +32,6 @@ export interface GenerativeAIServiceOptions extends FastifyPluginOptions {
   apiKey: string;
 }
 
-// For use in place of actual narrative generation
-const firstNarrative = 'the initial chapter goes here!';
-const nextNarratives = 'a new chapter goes here!';
-const finalNarrative = 'this is how the story ends!';
-// For use in place of actual choice generation
-const placeholderChoices: GeneratedOption[] = [
-  { action: 'first action' },
-  { action: 'second action' },
-  { action: 'third action' },
-];
-
 const SYSTEM_PROMPT = `
 <context>
 You are a master storyteller with large expertise in the "choose you own adventure" style of games.
@@ -142,33 +131,6 @@ const createService = (options: GenerativeAIServiceOptions) => {
       };
 
       return generated;
-      /*
-      // Narrative mock generation
-      let generatedNarrative: string;
-      if (promptData.messages.length <= 2) {
-        generatedNarrative = firstNarrative;
-      } else {
-        generatedNarrative = nextNarratives;
-      }
-
-      // Choices mock generation
-      let generatedOptions = placeholderChoices;
-      if (
-        promptData.messages[promptData.messages.length - 1].content === 'this is my last choice!'
-      ) {
-        generatedNarrative = finalNarrative;
-        generatedOptions = [];
-      }
-
-      const generated = {
-        content: {
-          narrative: generatedNarrative,
-          options: generatedOptions,
-        },
-      };
-
-      return generated;
-      */
     },
   };
 };

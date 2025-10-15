@@ -1,0 +1,1 @@
+ALTER TABLE "adventure_types" ADD COLUMN "setting" text;

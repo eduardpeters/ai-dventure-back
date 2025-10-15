@@ -6,6 +6,7 @@ import type { ChapterChoice } from '@/plugins/chapterChoicesRepository';
 interface AdventuresRoutesOptions {
   adventureHourlyRate: number;
   maxAdventureChapters: number;
+  genAIApiKey: string;
   generativeAIPluginOverride?: FastifyPluginAsync;
 }
 
@@ -16,7 +17,10 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
   if (options.generativeAIPluginOverride) {
     await fastify.register(options.generativeAIPluginOverride);
   } else {
-    await fastify.register(generativeAIServicePlugin, { baseUrl: 'string', apiKey: 'string' });
+    await fastify.register(generativeAIServicePlugin, {
+      baseUrl: '',
+      apiKey: options.genAIApiKey,
+    });
   }
   const {
     adventuresRepository,
@@ -119,7 +123,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       const { choice } = request.body as { choice: string | undefined };
 
       // Check if adventure ID is valid
-      const adventure = await adventuresRepository.getById(id);
+      const adventure = await adventuresRepository.getByIdWithSetting(id);
       if (!adventure) {
         return reply.code(404).send('This Adventure Is Lost');
       }
@@ -130,12 +134,13 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       // Check for latest chapter in the story
       const latestChapter = await chaptersRepository.getLatestByAdventureId(adventure.id);
 
-      // If adventure has started check if supplied choice is valid
+      // If adventure has started check if supplied choice is valid and store it
+      let adventureChoice: ChapterChoice | null = null;
       if (latestChapter) {
         if (!choice) {
           return reply.code(400).send('This Adventure Requires A Choice');
         }
-        const adventureChoice = await chapterChoicesRepository.getByIds(choice!, latestChapter.id);
+        adventureChoice = await chapterChoicesRepository.getByIds(choice!, latestChapter.id);
         if (!adventureChoice) {
           return reply.code(404).send('This Choice Is Lost');
         }
@@ -144,13 +149,19 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       const populatedChapters = await chaptersRepository.getByAdventureIdOrderedWithChoices(
         adventure.id,
       );
-      console.log('FULL RETRIEVAL', populatedChapters);
 
       // Build story so far
+      const CHOICES_PER_CHAPTER = 3;
       const promptData: StoryPromptData = {
         messages: [
-          { role: 'system', content: 'System Prompt' },
-          { role: 'user', content: 'Begin Adventure' },
+          { role: 'system', content: generativeAIService.getSystemPrompt(CHOICES_PER_CHAPTER) },
+          {
+            role: 'user',
+            content: generativeAIService.getStartingUserPrompt(
+              options.maxAdventureChapters,
+              adventure.setting,
+            ),
+          },
         ],
       };
       for (const chapterWithChoices of populatedChapters) {
@@ -158,30 +169,31 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         const messageAssistant: Message = { role: 'assistant', content: chapter.narrative };
         promptData.messages.push(messageAssistant);
         if (chapterChoice) {
-          promptData.messages.push({ role: 'user', content: chapterChoice.action });
+          promptData.messages.push({
+            role: 'user',
+            content: generativeAIService.getChoiceUserPrompt(chapterChoice.action),
+          });
         }
       }
       // Add current user prompt
-      const currentChoiceMessage: Message = { role: 'user', content: '' };
-      if (choice) {
+      if (choice && adventureChoice) {
         if (populatedChapters.length >= options.maxAdventureChapters) {
-          currentChoiceMessage.content = 'this is my last choice!';
-        } else {
-          currentChoiceMessage.content = 'adventure choice!';
+          console.log('maybe add ending ensuring instructions??');
         }
+        const currentChoiceMessage: Message = {
+          role: 'user',
+          content: generativeAIService.getChoiceUserPrompt(adventureChoice.action),
+        };
         promptData.messages.push(currentChoiceMessage);
       }
-
-      console.log('messages', promptData);
 
       const generatedResult = await generativeAIService.generate(promptData);
       if (!generatedResult) {
         // TODO: handle generation mishaps!
         return;
       }
-      console.log('gen result', generatedResult);
 
-      const generatedNarrative = generatedResult.content.narrative;
+      const generatedNarrative = generatedResult.narrative;
 
       // If no previous chapters, begin the first, otherwise, carry with the next
       const nextChapterData = {
@@ -192,9 +204,9 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
 
       // Persist changes in DB
       const nextChapter = await chaptersRepository.create(nextChapterData);
-      const generatedChoices = generatedResult.content.options.map((opt) => ({
+      const generatedChoices = generatedResult.options.map((opt) => ({
         chapterId: nextChapter.id,
-        action: opt.action,
+        action: opt,
       }));
 
       if (latestChapter && choice) {

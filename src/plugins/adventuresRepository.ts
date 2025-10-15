@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { eq, gt } from 'drizzle-orm';
 import fastifyPlugin from 'fastify-plugin';
-import { adventuresTable } from '@/db/schema';
+import { adventuresTable, adventureTypesTable } from '@/db/schema';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -10,6 +10,7 @@ declare module 'fastify' {
 }
 
 type Adventure = typeof adventuresTable.$inferSelect;
+type AdventureWithSetting = Adventure & { setting: string | null };
 
 interface AdventureUpdate {
   active: boolean;
@@ -43,6 +44,30 @@ const createRepository = (fastify: FastifyInstance) => {
 
     async getById(id: string): Promise<Adventure | null> {
       const results = await db.select().from(adventuresTable).where(eq(adventuresTable.id, id));
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0];
+    },
+
+    async getByIdWithSetting(id: string): Promise<AdventureWithSetting | null> {
+      const results = await db
+        .select({
+          id: adventuresTable.id,
+          active: adventuresTable.active,
+          created: adventuresTable.created,
+          last_modified: adventuresTable.last_modified,
+          adventure_type_id: adventuresTable.adventure_type_id,
+          setting: adventureTypesTable.setting,
+        })
+        .from(adventuresTable)
+        .innerJoin(
+          adventureTypesTable,
+          eq(adventuresTable.adventure_type_id, adventureTypesTable.id),
+        )
+        .where(eq(adventuresTable.id, id));
 
       if (results.length === 0) {
         return null;

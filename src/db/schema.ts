@@ -13,6 +13,7 @@ export const adventuresTable = pgTable('adventures', {
 export const adventureTypesTable = pgTable('adventure_types', {
   id: uuid().primaryKey().defaultRandom(),
   description: text(),
+  setting: text(),
 });
 
 export const chaptersTable = pgTable('chapters', {

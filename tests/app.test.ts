@@ -11,10 +11,11 @@ const TEST_APP_OPTIONS = {
   adventureHourlyRate: 1,
   connectionString: TEST_DATABASE_URL,
   maxAdventureChapters: 2,
+  genAIApiKey: '',
   generativeAIPluginOverride: mockGenerativeAIPlugin as FastifyPluginAsync,
 };
 
-describe('Aventure Types Injection Tests', () => {
+describe('Aventure Types Injection Tests', async () => {
   const app = build(TEST_APP_OPTIONS);
   const db = new TestDbClient(TEST_DATABASE_URL);
   afterAll(() => {
@@ -54,7 +55,10 @@ describe('Aventure Types Injection Tests', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
-    expect(response.json()).toStrictEqual(requestedAdventureType);
+    const received = response.json();
+    expect(received).not.toHaveProperty('setting');
+    expect(received.id).toEqual(requestedAdventureType.id);
+    expect(received.description).toEqual(requestedAdventureType.description);
   });
 });
 
@@ -288,7 +292,7 @@ describe('Adventures Gameplay Injection Tests', () => {
     );
     await db.createChapterChoice(firstChapter.id, 'a brave action', true);
     const chapter = await db.createChapter(adventure.id, 2, 'this is the final choice chapter');
-    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave final action', false);
 
     const response = await app.inject({
       method: 'POST',

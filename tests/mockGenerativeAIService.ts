@@ -19,7 +19,8 @@ const createService = (options: unknown) => {
       return 'first user prompt';
     },
 
-    getChoiceUserPrompt(choice: string): string {
+    getChoiceUserPrompt(numberOfChapters: number, chapters: number, choice: string): string {
+      (void numberOfChapters, chapters);
       return choice;
     },
 

@@ -171,18 +171,23 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         if (chapterChoice) {
           promptData.messages.push({
             role: 'user',
-            content: generativeAIService.getChoiceUserPrompt(chapterChoice.action),
+            content: generativeAIService.getChoiceUserPrompt(
+              options.maxAdventureChapters,
+              chapter.number,
+              chapterChoice.action,
+            ),
           });
         }
       }
       // Add current user prompt
-      if (choice && adventureChoice) {
-        if (populatedChapters.length >= options.maxAdventureChapters) {
-          console.log('maybe add ending ensuring instructions??');
-        }
+      if (latestChapter && adventureChoice) {
         const currentChoiceMessage: Message = {
           role: 'user',
-          content: generativeAIService.getChoiceUserPrompt(adventureChoice.action),
+          content: generativeAIService.getChoiceUserPrompt(
+            options.maxAdventureChapters,
+            latestChapter.number,
+            adventureChoice.action,
+          ),
         };
         promptData.messages.push(currentChoiceMessage);
       }

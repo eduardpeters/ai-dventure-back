@@ -67,16 +67,17 @@ The story will have a length of %CHAPTERS% chapters with choices, after these th
 </setting>
 `;
 
+const PROGRESSION_USER_PROMPT = `
+<progression>
+Chapter %CHAPTER% of %N_CHAPTERS%
+%PROGRESSION_INSTRUCTIONS%
+</progression>
+`;
+
 const CHOICE_USER_PROMPT = `
 <choice>
 %CHOICE%
 </choice>
-`;
-
-const ENSURE_ENDING_INSTRUCTION = `
-<intructions>
-What follows is the user's final choice, you must end the story in your reply.
-</instructions>
 `;
 
 const MISTRAL_SMALL = 'mistral-small-latest';
@@ -98,22 +99,36 @@ const createService = (options: GenerativeAIServiceOptions) => {
       return replace(INITIAL_USER_PROMPT, replacementMap);
     },
 
-    getChoiceUserPrompt(choice: string): string {
+    getChoiceUserPrompt(numberOfChapters: number, currentChapter: number, choice: string): string {
+      let currentProgression: string;
+      if (currentChapter >= numberOfChapters) {
+        currentProgression =
+          "What follows is the user's final choice, you must end the story in your reply.";
+      } else if (currentChapter >= numberOfChapters / 2) {
+        currentProgression =
+          'You have reached the middle of the story, things will need to wrap up soon.';
+      } else {
+        currentProgression = 'You are still at the first half of the story.';
+      }
+
       const replacementMap = {
+        '%CHAPTER%': currentChapter.toString(),
+        '%N_CHAPTERS%': numberOfChapters.toString(),
+        '%PROGRESSION_INSTRUCTIONS%': currentProgression,
         '%CHOICE%': choice,
       };
-      return replace(CHOICE_USER_PROMPT, replacementMap);
+      return (
+        replace(PROGRESSION_USER_PROMPT, replacementMap) +
+        replace(CHOICE_USER_PROMPT, replacementMap)
+      );
     },
 
     async generate(promptData: StoryPromptData): Promise<GenerativeAIResponse | null> {
-      console.log('Generating with Mistral');
       const response = await client.chat.complete({
         model: MISTRAL_SMALL,
         messages: promptData.messages,
         responseFormat: { type: 'json_object' },
       });
-      console.log(response);
-      console.log(response.choices[0].message);
 
       const responseJSON = response.choices[0].message.content;
       if (!responseJSON || typeof responseJSON !== 'string') {

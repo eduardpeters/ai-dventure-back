@@ -1,1 +1,0 @@
-ALTER TABLE "chapters" DROP COLUMN "story_so_far";

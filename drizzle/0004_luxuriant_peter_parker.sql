@@ -1,1 +1,0 @@
-ALTER TABLE "chapters" ADD COLUMN "narrative" text NOT NULL;

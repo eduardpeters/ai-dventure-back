@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/eduardpeters/ai-dventure-back#readme",
   "dependencies": {
+    "@fastify/cors": "^11.1.0",
     "@mistralai/mistralai": "^1.10.0",
     "drizzle-orm": "^0.44.7",
     "fastify": "^5.6.1",

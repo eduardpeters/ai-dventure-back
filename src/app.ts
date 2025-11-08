@@ -1,4 +1,5 @@
 import fastify, { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import cors from '@fastify/cors';
 import dbPlugin from '@/plugins/db';
 import adventuresRepository from '@/plugins/adventuresRepository';
 import adventureTypesRepository from '@/plugins/adventureTypesRepository';
@@ -9,6 +10,7 @@ import adventureTypesRoutes from '@/routes/adventureTypes';
 
 interface AppOptions {
   logger: boolean;
+  corsOrigins: string[] | boolean;
   connectionString: string;
   adventureHourlyRate: number;
   maxAdventureChapters: number;
@@ -18,6 +20,8 @@ interface AppOptions {
 
 function build(options: AppOptions): FastifyInstance {
   const app = fastify({ logger: options.logger });
+
+  app.register(cors, { origin: options.corsOrigins });
 
   app.register(dbPlugin, { connectionString: options.connectionString });
   app.register(adventuresRepository);

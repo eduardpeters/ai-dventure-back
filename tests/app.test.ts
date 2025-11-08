@@ -8,6 +8,7 @@ import * as vitestTypes from './vitest'; // meta type definitions for test envir
 const TEST_DATABASE_URL = import.meta.env.TEST_DATABASE_URL;
 const TEST_APP_OPTIONS = {
   logger: false,
+  corsOrigins: true,
   adventureHourlyRate: 1,
   connectionString: TEST_DATABASE_URL,
   maxAdventureChapters: 2,
@@ -186,8 +187,8 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.chapterNumber).toBe(1);
     expect(data.narrative).toBe('the initial chapter goes here!');
     expect(data.choices.length).toBe(3);
-    expect(data.choices.every((c) => c.id)).toBe(true);
-    expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
+    expect(data.choices.every((c: any) => c.id)).toBe(true);
+    expect(data.choices.every((c: any) => c.action.length > 0)).toBe(true);
   });
 
   test('It receives a 400 response if no action is supplied when story is underway', async () => {
@@ -263,8 +264,8 @@ describe('Adventures Gameplay Injection Tests', () => {
     expect(data.chapterNumber).toBe(2);
     expect(data.narrative).toBe('a new chapter goes here!');
     expect(data.choices.length).toBe(3);
-    expect(data.choices.every((c) => c.id)).toBe(true);
-    expect(data.choices.every((c) => c.action.length > 0)).toBe(true);
+    expect(data.choices.every((c: any) => c.id)).toBe(true);
+    expect(data.choices.every((c: any) => c.action.length > 0)).toBe(true);
 
     // Check that choice is now flagged as chosen
     const updatedChapterChoice = await db.getChapterChoice(chapterChoice.id);

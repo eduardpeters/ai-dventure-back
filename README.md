@@ -29,6 +29,7 @@ interface AppOptions {
 ```
 
 - `logger`: maps directly to the fastify instance logger option
+- `corsOrigins`: maps to the `fastify-cors` origin plugin option
 - `connectionString`: used by Drizzle to connect to the database
 - `adventureHourlyRate`: limits the hourly amount of new adventures that are generated
 - `maxAdventureChapters`: limits the amount of interactive chapters for the stories
@@ -42,11 +43,14 @@ The project requires a series of configuration variables, supplied as environmen
 ```bash
 ENVIRONMENT=PRODUCTION|DEVELOPMENT
 API_PORT=8080
+CORS_ORIGINS="origin1,origin2"
 DATABASE_URL=""
 HOURLY_RATE=5
 ADVENTURE_LENGTH=5
 GENAI_API_KEY=""
 ```
+
+The `CORS_ORIGINS` variable is a comma separated list of origins to allow.
 
 After setting up a database instance and adding the connection string to the `.env` file, use the `npm run drizzle:migrate` command to run migrations.
 

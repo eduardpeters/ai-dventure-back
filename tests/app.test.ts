@@ -71,7 +71,7 @@ describe('Adventures Injection Tests', () => {
     db.close();
   });
 
-  test('It receives a 400 status if requesting without a valid adventure type', async () => {
+  test('It receives a 400 status if POSTing without a valid adventure type', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/adventures',

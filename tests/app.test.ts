@@ -122,6 +122,26 @@ describe('Adventures Injection Tests', () => {
   });
 });
 
+describe('Adventures Retrieval Tests', () => {
+  const app = build(TEST_APP_OPTIONS);
+  const db = new TestDbClient(TEST_DATABASE_URL);
+  afterAll(() => {
+    app.close();
+    db.close();
+  });
+
+  test('It receives a 404 status if requesting an invalid adventure', async () => {
+    // DB is empty
+    const adventureId = '00000000-0000-0000-0000-000000000000';
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventureId}`,
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+});
+
 describe('Adventures Gameplay Injection Tests', () => {
   const app = build({ ...TEST_APP_OPTIONS, maxAdventureChapters: 2 });
   const db = new TestDbClient(TEST_DATABASE_URL);

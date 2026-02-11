@@ -79,6 +79,63 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
   );
 
   fastify.post(
+    '/adventures/:id',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              setting: { type: 'string' },
+              chapters: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    chapterNumber: { type: 'number' },
+                    narrative: { type: 'string' },
+                    choices: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          action: { type: 'string' },
+                          chosen: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            type: 'string',
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+
+      const adventure = await adventuresRepository.getByIdWithSetting(id);
+      if (!adventure) {
+        return reply.code(404).send('This Adventure Is Lost');
+      }
+
+      return { id, chapters: [] };
+    },
+  );
+
+  fastify.post(
     '/adventures/:id/forth',
     {
       schema: {

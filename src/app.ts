@@ -19,7 +19,7 @@ interface AppOptions {
 }
 
 function build(options: AppOptions): FastifyInstance {
-  const app = fastify({ logger: options.logger });
+  const app = fastify({ logger: options.logger, routerOptions: { ignoreTrailingSlash: true } });
 
   app.register(cors, { origin: options.corsOrigins });
 

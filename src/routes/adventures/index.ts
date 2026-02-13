@@ -78,7 +78,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
     },
   );
 
-  fastify.post(
+  fastify.get(
     '/adventures/:id',
     {
       schema: {
@@ -131,7 +131,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         return reply.code(404).send('This Adventure Is Lost');
       }
 
-      return { id, chapters: [] };
+      return { ...adventure, chapters: [] };
     },
   );
 

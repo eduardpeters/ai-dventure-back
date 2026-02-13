@@ -140,6 +140,31 @@ describe('Adventures Retrieval Tests', () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  test('It receives an adventure without chapters if just created', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('id');
+    expect(data.id).toEqual(adventure.id);
+    expect(data).toHaveProperty('setting');
+    expect(data).toHaveProperty('chapters');
+    expect(data.chapters.length).toBe(0);
+  });
 });
 
 describe('Adventures Gameplay Injection Tests', () => {

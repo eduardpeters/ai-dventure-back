@@ -20,7 +20,7 @@ export default class TestDbClient {
   }
 
   async queryAdventureTypes() {
-    const result = await this.query('SELECT id, description FROM adventure_types;');
+    const result = await this.query('SELECT id, description, setting FROM adventure_types;');
     return result.rows;
   }
 

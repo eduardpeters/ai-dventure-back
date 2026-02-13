@@ -99,7 +99,7 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
                 items: {
                   type: 'object',
                   properties: {
-                    chapterNumber: { type: 'number' },
+                    number: { type: 'number' },
                     narrative: { type: 'string' },
                     choices: {
                       type: 'array',
@@ -130,8 +130,9 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
       if (!adventure) {
         return reply.code(404).send('This Adventure Is Lost');
       }
+      const chapters = await chaptersRepository.getByAdventureIdOrdered(adventure.id);
 
-      return { ...adventure, chapters: [] };
+      return { ...adventure, chapters };
     },
   );
 

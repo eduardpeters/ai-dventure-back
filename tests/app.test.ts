@@ -163,7 +163,38 @@ describe('Adventures Retrieval Tests', () => {
     expect(data.id).toEqual(adventure.id);
     expect(data).toHaveProperty('setting');
     expect(data).toHaveProperty('chapters');
-    expect(data.chapters.length).toBe(0);
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(0);
+  });
+
+  test('It receives an adventure with a single chapter if just started', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    console.log(data);
+    expect(data).toHaveProperty('id');
+    expect(data.id).toEqual(adventure.id);
+    expect(data).toHaveProperty('setting');
+    expect(data).toHaveProperty('chapters');
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    expect(chapters[0].number).toEqual(chapter.number);
+    expect(chapters[0].narrative).toEqual(chapter.narrative);
   });
 });
 

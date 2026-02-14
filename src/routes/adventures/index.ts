@@ -131,8 +131,17 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
         return reply.code(404).send('This Adventure Is Lost');
       }
       const chapters = await chaptersRepository.getByAdventureIdOrdered(adventure.id);
+      const chaptersChoices = await chapterChoicesRepository.getByAdventureId(adventure.id);
+      const chapterChoicesMap = new Map<string, ChapterChoice[]>(chapters.map((c) => [c.id, []]));
+      for (const choice of chaptersChoices) {
+        chapterChoicesMap.get(choice.chapter_id)?.push(choice);
+      }
+      const chaptersWithChoices = chapters.map((chapter) => ({
+        ...chapter,
+        choices: chapterChoicesMap.get(chapter.id),
+      }));
 
-      return { ...adventure, chapters };
+      return { ...adventure, chapters: chaptersWithChoices };
     },
   );
 

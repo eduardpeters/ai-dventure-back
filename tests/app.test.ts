@@ -169,7 +169,7 @@ describe('Adventures Retrieval Tests', () => {
 
   test('It receives an adventure with a single chapter if just started', async () => {
     onTestFinished(async () => {
-      await db.cleanupTables(['chapters', 'adventures']);
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
     });
     // We retrieve directly from DB
     const adventureTypes = await db.queryAdventureTypes();
@@ -177,6 +177,7 @@ describe('Adventures Retrieval Tests', () => {
 
     const adventure = await db.createAdventure(adventureType.id, true);
     const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
 
     const response = await app.inject({
       method: 'GET',
@@ -186,15 +187,106 @@ describe('Adventures Retrieval Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
     const data = response.json();
-    console.log(data);
     expect(data).toHaveProperty('id');
     expect(data.id).toEqual(adventure.id);
     expect(data).toHaveProperty('setting');
     expect(data).toHaveProperty('chapters');
     const chapters = data.chapters;
     expect(chapters.length).toBe(1);
-    expect(chapters[0].number).toEqual(chapter.number);
-    expect(chapters[0].narrative).toEqual(chapter.narrative);
+    const firstChapter = chapters[0];
+    expect(firstChapter).toHaveProperty('number');
+    expect(firstChapter.number).toEqual(chapter.number);
+    expect(firstChapter).toHaveProperty('narrative');
+    expect(firstChapter.narrative).toEqual(chapter.narrative);
+    expect(firstChapter).toHaveProperty('choices');
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(1);
+    const firstChoice = choices[0];
+    expect(firstChoice).toHaveProperty('id');
+    expect(firstChoice.id).toEqual(chapterChoice.id);
+    expect(firstChoice).toHaveProperty('action');
+    expect(firstChoice.action).toEqual(chapterChoice.action);
+    expect(firstChoice).toHaveProperty('chosen');
+    expect(firstChoice.chosen).toBe(false);
+  });
+
+  test('It receives an adventure with chosen chapter choices if underway', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
+    // Throwaway choice
+    await db.createChapterChoice(chapter.id, 'a brave action', false);
+    const chosenChapterChoice = await db.createChapterChoice(chapter.id, 'an action taken', true);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('id');
+    expect(data.id).toEqual(adventure.id);
+    expect(data).toHaveProperty('setting');
+    expect(data).toHaveProperty('chapters');
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    const firstChapter = chapters[0];
+    expect(firstChapter).toHaveProperty('number');
+    expect(firstChapter.number).toEqual(chapter.number);
+    expect(firstChapter).toHaveProperty('narrative');
+    expect(firstChapter.narrative).toEqual(chapter.narrative);
+    expect(firstChapter).toHaveProperty('choices');
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(2);
+    const chosen = choices.find((choice: { chosen: boolean }) => choice.chosen);
+    expect(chosen).toBeDefined();
+  });
+
+  test('It receives an adventure with a chapter with empty choices if it has concluded', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(
+      adventure.id,
+      1,
+      'the initial and final chapter goes here',
+    );
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    const data = response.json();
+    expect(data).toHaveProperty('id');
+    expect(data.id).toEqual(adventure.id);
+    expect(data).toHaveProperty('setting');
+    expect(data).toHaveProperty('chapters');
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    const firstChapter = chapters[0];
+    expect(firstChapter).toHaveProperty('number');
+    expect(firstChapter.number).toEqual(chapter.number);
+    expect(firstChapter).toHaveProperty('narrative');
+    expect(firstChapter.narrative).toEqual(chapter.narrative);
+    expect(firstChapter).toHaveProperty('choices');
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(0);
   });
 });
 

@@ -248,6 +248,10 @@ describe('Adventures Retrieval Tests', () => {
     expect(choices.length).toBe(2);
     const chosen = choices.find((choice: { chosen: boolean }) => choice.chosen);
     expect(chosen).toBeDefined();
+    expect(chosen).toHaveProperty('id');
+    expect(chosen.id).toEqual(chosenChapterChoice.id);
+    expect(chosen).toHaveProperty('action');
+    expect(chosen.action).toEqual(chosenChapterChoice.action);
   });
 
   test('It receives an adventure with a chapter with empty choices if it has concluded', async () => {

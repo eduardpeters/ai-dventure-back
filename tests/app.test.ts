@@ -1,5 +1,12 @@
 import { describe, expect, test, afterAll, onTestFinished } from 'vitest';
 import build from '../src/app';
+import {
+  isOKResponse,
+  isJSONContent,
+  isExpectedAdventureResponse,
+  isExpectedChapterResponse,
+  isExpectedChapterChoiceResponse,
+} from './helpers';
 import TestDbClient from './TestDbClient';
 import mockGenerativeAIPlugin from './mockGenerativeAIService';
 import type { FastifyPluginAsync } from 'fastify';
@@ -30,8 +37,8 @@ describe('Aventure Types Injection Tests', async () => {
       url: '/adventure-types',
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     expect(response.json()).toBeInstanceOf(Array);
   });
 
@@ -54,8 +61,8 @@ describe('Aventure Types Injection Tests', async () => {
       url: `/adventure-types/${requestedAdventureType.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const received = response.json();
     expect(received).not.toHaveProperty('setting');
     expect(received.id).toEqual(requestedAdventureType.id);
@@ -71,7 +78,7 @@ describe('Adventures Injection Tests', () => {
     db.close();
   });
 
-  test('It receives a 400 status if requesting without a valid adventure type', async () => {
+  test('It receives a 400 status if POSTing without a valid adventure type', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/adventures',
@@ -96,8 +103,8 @@ describe('Adventures Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     expect(response.json()).toHaveProperty('adventure');
   });
 
@@ -119,6 +126,146 @@ describe('Adventures Injection Tests', () => {
 
     expect(response.statusCode).toBe(503);
     expect(response.headers['retry-after']).toBeDefined();
+  });
+});
+
+describe('Adventures Retrieval Tests', () => {
+  const app = build(TEST_APP_OPTIONS);
+  const db = new TestDbClient(TEST_DATABASE_URL);
+  afterAll(() => {
+    app.close();
+    db.close();
+  });
+
+  test('It receives a 404 status if requesting an invalid adventure', async () => {
+    // DB is empty
+    const adventureId = '00000000-0000-0000-0000-000000000000';
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventureId}`,
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+
+  test('It receives an adventure without chapters if just created', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    isOKResponse(response);
+    isJSONContent(response);
+    const data = response.json();
+    isExpectedAdventureResponse(adventure, data);
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(0);
+  });
+
+  test('It receives an adventure with a single chapter if just started', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
+    const chapterChoice = await db.createChapterChoice(chapter.id, 'a brave action', false);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    isOKResponse(response);
+    isJSONContent(response);
+    const data = response.json();
+    isExpectedAdventureResponse(adventure, data);
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    const firstChapter = chapters[0];
+    isExpectedChapterResponse(chapter, firstChapter);
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(1);
+    const firstChoice = choices[0];
+    isExpectedChapterChoiceResponse(chapterChoice, firstChoice);
+  });
+
+  test('It receives an adventure with chosen chapter choices if underway', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapter_choices', 'chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(adventure.id, 1, 'the initial chapter goes here');
+    // Throwaway choice
+    await db.createChapterChoice(chapter.id, 'a brave action', false);
+    const chosenChapterChoice = await db.createChapterChoice(chapter.id, 'an action taken', true);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    isOKResponse(response);
+    isJSONContent(response);
+    const data = response.json();
+    isExpectedAdventureResponse(adventure, data);
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    const firstChapter = chapters[0];
+    isExpectedChapterResponse(chapter, firstChapter);
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(2);
+    const chosen = choices.find((choice: { chosen: boolean }) => choice.chosen);
+    expect(chosen).toBeDefined();
+    isExpectedChapterChoiceResponse(chosenChapterChoice, chosen);
+  });
+
+  test('It receives an adventure with a chapter with empty choices if it has concluded', async () => {
+    onTestFinished(async () => {
+      await db.cleanupTables(['chapters', 'adventures']);
+    });
+    // We retrieve directly from DB
+    const adventureTypes = await db.queryAdventureTypes();
+    const adventureType = adventureTypes[0];
+
+    const adventure = await db.createAdventure(adventureType.id, true);
+    const chapter = await db.createChapter(
+      adventure.id,
+      1,
+      'the initial and final chapter goes here',
+    );
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/adventures/${adventure.id}`,
+    });
+
+    isOKResponse(response);
+    isJSONContent(response);
+    const data = response.json();
+    isExpectedAdventureResponse(adventure, data);
+    const chapters = data.chapters;
+    expect(chapters.length).toBe(1);
+    const firstChapter = chapters[0];
+    isExpectedChapterResponse(chapter, firstChapter);
+    const choices = firstChapter.choices;
+    expect(choices.length).toBe(0);
   });
 });
 
@@ -178,8 +325,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       payload: {},
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
@@ -255,8 +402,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
@@ -303,8 +450,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');

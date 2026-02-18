@@ -78,6 +78,73 @@ const plugin: FastifyPluginAsync<AdventuresRoutesOptions> = async (
     },
   );
 
+  fastify.get(
+    '/adventures/:id',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              setting: { type: 'string' },
+              chapters: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    number: { type: 'number' },
+                    narrative: { type: 'string' },
+                    choices: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          action: { type: 'string' },
+                          chosen: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            type: 'string',
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+
+      const adventure = await adventuresRepository.getByIdWithSetting(id);
+      if (!adventure) {
+        return reply.code(404).send('This Adventure Is Lost');
+      }
+      const chapters = await chaptersRepository.getByAdventureIdOrdered(adventure.id);
+      const chaptersChoices = await chapterChoicesRepository.getByAdventureId(adventure.id);
+      const chapterChoicesMap = new Map<string, ChapterChoice[]>(chapters.map((c) => [c.id, []]));
+      for (const choice of chaptersChoices) {
+        chapterChoicesMap.get(choice.chapter_id)?.push(choice);
+      }
+      const chaptersWithChoices = chapters.map((chapter) => ({
+        ...chapter,
+        choices: chapterChoicesMap.get(chapter.id),
+      }));
+
+      return { ...adventure, chapters: chaptersWithChoices };
+    },
+  );
+
   fastify.post(
     '/adventures/:id/forth',
     {

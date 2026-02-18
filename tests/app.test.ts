@@ -1,5 +1,12 @@
 import { describe, expect, test, afterAll, onTestFinished } from 'vitest';
 import build from '../src/app';
+import {
+  isOKResponse,
+  isJSONContent,
+  isExpectedAdventureResponse,
+  isExpectedChapterResponse,
+  isExpectedChapterChoiceResponse,
+} from './helpers';
 import TestDbClient from './TestDbClient';
 import mockGenerativeAIPlugin from './mockGenerativeAIService';
 import type { FastifyPluginAsync } from 'fastify';
@@ -30,8 +37,8 @@ describe('Aventure Types Injection Tests', async () => {
       url: '/adventure-types',
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     expect(response.json()).toBeInstanceOf(Array);
   });
 
@@ -54,8 +61,8 @@ describe('Aventure Types Injection Tests', async () => {
       url: `/adventure-types/${requestedAdventureType.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const received = response.json();
     expect(received).not.toHaveProperty('setting');
     expect(received.id).toEqual(requestedAdventureType.id);
@@ -96,8 +103,8 @@ describe('Adventures Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     expect(response.json()).toHaveProperty('adventure');
   });
 
@@ -156,13 +163,10 @@ describe('Adventures Retrieval Tests', () => {
       url: `/adventures/${adventure.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
-    expect(data).toHaveProperty('id');
-    expect(data.id).toEqual(adventure.id);
-    expect(data).toHaveProperty('setting');
-    expect(data).toHaveProperty('chapters');
+    isExpectedAdventureResponse(adventure, data);
     const chapters = data.chapters;
     expect(chapters.length).toBe(0);
   });
@@ -184,30 +188,18 @@ describe('Adventures Retrieval Tests', () => {
       url: `/adventures/${adventure.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
-    expect(data).toHaveProperty('id');
-    expect(data.id).toEqual(adventure.id);
-    expect(data).toHaveProperty('setting');
-    expect(data).toHaveProperty('chapters');
+    isExpectedAdventureResponse(adventure, data);
     const chapters = data.chapters;
     expect(chapters.length).toBe(1);
     const firstChapter = chapters[0];
-    expect(firstChapter).toHaveProperty('number');
-    expect(firstChapter.number).toEqual(chapter.number);
-    expect(firstChapter).toHaveProperty('narrative');
-    expect(firstChapter.narrative).toEqual(chapter.narrative);
-    expect(firstChapter).toHaveProperty('choices');
+    isExpectedChapterResponse(chapter, firstChapter);
     const choices = firstChapter.choices;
     expect(choices.length).toBe(1);
     const firstChoice = choices[0];
-    expect(firstChoice).toHaveProperty('id');
-    expect(firstChoice.id).toEqual(chapterChoice.id);
-    expect(firstChoice).toHaveProperty('action');
-    expect(firstChoice.action).toEqual(chapterChoice.action);
-    expect(firstChoice).toHaveProperty('chosen');
-    expect(firstChoice.chosen).toBe(false);
+    isExpectedChapterChoiceResponse(chapterChoice, firstChoice);
   });
 
   test('It receives an adventure with chosen chapter choices if underway', async () => {
@@ -229,29 +221,19 @@ describe('Adventures Retrieval Tests', () => {
       url: `/adventures/${adventure.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
-    expect(data).toHaveProperty('id');
-    expect(data.id).toEqual(adventure.id);
-    expect(data).toHaveProperty('setting');
-    expect(data).toHaveProperty('chapters');
+    isExpectedAdventureResponse(adventure, data);
     const chapters = data.chapters;
     expect(chapters.length).toBe(1);
     const firstChapter = chapters[0];
-    expect(firstChapter).toHaveProperty('number');
-    expect(firstChapter.number).toEqual(chapter.number);
-    expect(firstChapter).toHaveProperty('narrative');
-    expect(firstChapter.narrative).toEqual(chapter.narrative);
-    expect(firstChapter).toHaveProperty('choices');
+    isExpectedChapterResponse(chapter, firstChapter);
     const choices = firstChapter.choices;
     expect(choices.length).toBe(2);
     const chosen = choices.find((choice: { chosen: boolean }) => choice.chosen);
     expect(chosen).toBeDefined();
-    expect(chosen).toHaveProperty('id');
-    expect(chosen.id).toEqual(chosenChapterChoice.id);
-    expect(chosen).toHaveProperty('action');
-    expect(chosen.action).toEqual(chosenChapterChoice.action);
+    isExpectedChapterChoiceResponse(chosenChapterChoice, chosen);
   });
 
   test('It receives an adventure with a chapter with empty choices if it has concluded', async () => {
@@ -274,21 +256,14 @@ describe('Adventures Retrieval Tests', () => {
       url: `/adventures/${adventure.id}`,
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
-    expect(data).toHaveProperty('id');
-    expect(data.id).toEqual(adventure.id);
-    expect(data).toHaveProperty('setting');
-    expect(data).toHaveProperty('chapters');
+    isExpectedAdventureResponse(adventure, data);
     const chapters = data.chapters;
     expect(chapters.length).toBe(1);
     const firstChapter = chapters[0];
-    expect(firstChapter).toHaveProperty('number');
-    expect(firstChapter.number).toEqual(chapter.number);
-    expect(firstChapter).toHaveProperty('narrative');
-    expect(firstChapter.narrative).toEqual(chapter.narrative);
-    expect(firstChapter).toHaveProperty('choices');
+    isExpectedChapterResponse(chapter, firstChapter);
     const choices = firstChapter.choices;
     expect(choices.length).toBe(0);
   });
@@ -350,8 +325,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       payload: {},
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
@@ -427,8 +402,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
@@ -475,8 +450,8 @@ describe('Adventures Gameplay Injection Tests', () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['content-type']).toBe('application/json; charset=utf-8');
+    isOKResponse(response);
+    isJSONContent(response);
     const data = response.json();
     expect(data).toHaveProperty('chapterNumber');
     expect(data).toHaveProperty('narrative');
